@@ -1,29 +1,10 @@
-typedef unsigned int uint32_t;
+#include "types.h"
+#include "game.h"
+#include "functions.h"
+#include "led_control.h"
 
-#define REG(P) (*(volatile uint32_t *) (P))
+game_state state = INITIAL;
 
-#define GPIO_BASE 0x10012000
-#define GPIO_INPUT_EN 0x4
-#define GPIO_OUTPUT_EN 0x8
-#define GPIO_OUTPUT_VAL 0xc
-#define GPIO_IOF_EN 0x38
-#define GPIO_INPUT_VAL 0x0
-#define GPIO_PUE 0x10
-
-#define BLUE_LED 5
-#define GREEN_LED 18
-#define BUTTON 19
-
-typedef enum {
-    FALSE, TRUE
-} boolean;
-
-void setup_led(int gpio_pin){
-	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1 << gpio_pin);
-	REG(GPIO_BASE + GPIO_INPUT_EN) &= ~(1 << gpio_pin);
-	REG(GPIO_BASE + GPIO_OUTPUT_EN) |= 1 << gpio_pin;
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1 << gpio_pin);
-}
 
 void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1 << gpio_pin);
@@ -33,40 +14,58 @@ void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1 << gpio_pin);
 }
 
-void enable_led(int led, int state){
-    if (state){
-		REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1 << led);
-    } else{
-	    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1 << led);
-    }
-    
-}
-
 boolean is_pressed(int button){
-    if((REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << BUTTON)) <= 0) return TRUE;
+    if((REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) return TRUE;
     else return FALSE;
 }
 
-int main (void)
-{
-	// setup LEDs
-    setup_led(BLUE_LED);
+void delay(){
+    volatile uint32_t i = 0;
+    for (i = 0; i < 184210; i++){}
+}
+
+void setup(void){
     setup_led(GREEN_LED);
+    setup_led(BLUE_LED);
+    setup_led(YELLOW_LED);
+    setup_led(RED_LED);
 
-    setup_button(BUTTON);
+    setup_button(GREEN_BUTTON);
+    setup_button(BLUE_BUTTON);
+    setup_button(YELLOW_BUTTON);
+    setup_button(RED_BUTTON);
+}
 
-	// toggle only blue LED
-    enable_led(BLUE_LED, 0);
-    enable_led(GREEN_LED, 0);
+void loop(){
+    switch (state){
+        case INITIAL:
+            led_blink_initial();
+            //state = STANDBY;
+            break;
+        case STANDBY:
+            break;
+        case DEMONSTRATION:
+            break;
+        case IMITATION:
+            break;
+        case LOST:
+            break;
+        case TRANSITION:
+            break;
+        case END:
+            break;
+        
+        default:
+            break;
+    }
+}
+
+int main(void){
+
+    setup();
 
     while(1){
-		if (is_pressed(BUTTON)){
-            enable_led(BLUE_LED, 1);
-            enable_led(GREEN_LED, 1);
-		} else {
-            enable_led(BLUE_LED, 0);
-            enable_led(GREEN_LED, 0);
-        }
+        loop();
     }
-
 }
+
