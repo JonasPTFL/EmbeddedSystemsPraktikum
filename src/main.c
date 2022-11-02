@@ -2,6 +2,8 @@
 #include "game.h"
 #include "functions.h"
 #include "led_control.h"
+#include <stdio.h>
+#include <time.h>
 
 game_state state = INITIAL;
 
@@ -19,9 +21,24 @@ boolean is_pressed(int button){
     else return FALSE;
 }
 
-void delay(){
-    volatile uint32_t i = 0;
-    for (i = 0; i < 184210; i++){}
+void delay(int milliseconds){
+    delay_with_interrupt(milliseconds, -1);
+}
+
+boolean delay_with_interrupt(int milliseconds, int interrupt_button_pin){
+    long pause;
+    clock_t now,then;
+
+    pause = milliseconds*(CLOCKS_PER_SEC/5000); // TODO klären, wieso es mit 5000 passt, obwohl 1sec=1000ms
+    now = then = clock();
+    while( (now-then) < pause ) {
+        if (interrupt_button_pin != -1 && is_pressed(interrupt_button_pin)){
+            return TRUE;
+        }
+        
+        now = clock();
+    }
+    return FALSE;
 }
 
 void setup(void){
@@ -40,10 +57,16 @@ void loop(){
     switch (state){
         case INITIAL:
             led_blink_initial();
-            //state = STANDBY;
+            state = READY;
             break;
-        case STANDBY:
+        case READY: {
+            boolean green_btn_pressed = led_blink_ready();
+            if (green_btn_pressed){
+                enabled_all_leds(FALSE);
+                state = DEMONSTRATION;
+            }
             break;
+        }
         case DEMONSTRATION:
             break;
         case IMITATION:

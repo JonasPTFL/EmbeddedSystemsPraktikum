@@ -10,8 +10,11 @@ void enabled_all_leds(boolean);
 boolean is_pressed(int);
 void setup(void);
 void loop();
+int led_pin_at_position(int);
 void led_blink_initial();
-void delay();
+boolean led_blink_ready();
+void delay(int);
+boolean delay_with_interrupt(int, int);
 
 
 #endif

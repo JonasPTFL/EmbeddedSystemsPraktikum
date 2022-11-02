@@ -21,10 +21,22 @@ void enabled_all_leds(boolean state){
 
 void enable_led(int led, boolean state){
     if (state){
-		REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1 << led);
+		  REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1 << led);
     } else{
 	    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1 << led);
     }
+}
+
+int led_pin_at_position(int pos){
+  switch (pos)
+  {
+    case 0: return GREEN_LED;
+    case 1: return BLUE_LED;
+    case 2: return YELLOW_LED;
+    case 3: return RED_LED;
+  
+    default: return -1;
+  }
 }
 
 #endif

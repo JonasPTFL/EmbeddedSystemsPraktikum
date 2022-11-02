@@ -6,9 +6,22 @@
 
 void led_blink_initial(){
     enabled_all_leds(TRUE);
-    delay();
+    delay(T_SHORT);
     enabled_all_leds(FALSE);
-    delay();
+    delay(T_SHORT);
+}
+
+boolean led_blink_ready(){
+    for (int i = 0; i < LED_COUNT; i++){
+        enabled_all_leds(FALSE);
+        enable_led(led_pin_at_position(i), TRUE);
+        boolean interrupted = delay_with_interrupt(T_SHORT, GREEN_BUTTON);
+        if (interrupted){
+            return TRUE;
+        }
+        
+    }
+    return FALSE;
 }
 
 #endif
