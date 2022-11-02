@@ -43,7 +43,8 @@ void enable_led(int led, int state){
 }
 
 boolean is_pressed(int button){
-    return REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << BUTTON); 
+    if((REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << BUTTON)) <= 0) return TRUE;
+    else return FALSE;
 }
 
 int main (void)
