@@ -27,24 +27,50 @@ boolean is_pressed(int button){
     else return FALSE;
 }
 
-void delay(int milliseconds){
-    delay_with_interrupt(milliseconds, -1);
+boolean is_only_pressed(int button){
+    return is_pressed(button) 
+        && (button != GREEN_BUTTON && !is_pressed(GREEN_BUTTON))
+        && (button != BLUE_BUTTON && !is_pressed(BLUE_BUTTON))
+        && (button != YELLOW_BUTTON && !is_pressed(YELLOW_BUTTON))
+        && (button != RED_BUTTON && !is_pressed(RED_BUTTON));
 }
 
-boolean delay_with_interrupt(int milliseconds, int interrupt_button_pin){
+int get_button_for_led(int led_pin){
+    switch (led_pin)
+    {
+    case GREEN_LED: return GREEN_BUTTON;
+    case BLUE_LED: return BLUE_BUTTON;
+    case YELLOW_LED: return YELLOW_BUTTON;
+    case RED_LED: return RED_BUTTON;
+    default: return -1;
+    }
+}
+
+boolean _delay(int milliseconds, boolean with_button_interrupt){
     long pause;
     clock_t now,then;
 
     pause = milliseconds*(CLOCKS_PER_SEC/5000); // TODO klären, wieso es mit 5000 passt, obwohl 1sec=1000ms
     now = then = clock();
     while( (now-then) < pause ) {
-        if (interrupt_button_pin != -1 && is_pressed(interrupt_button_pin)){
+        if (with_button_interrupt && is_pressed(GREEN_BUTTON) 
+        || is_pressed(BLUE_BUTTON) 
+        || is_pressed(YELLOW_BUTTON) 
+        || is_pressed(RED_BUTTON)){
             return TRUE;
         }
         
         now = clock();
     }
     return FALSE;
+}
+
+void delay(int milliseconds){
+    _delay(milliseconds, FALSE);
+}
+
+boolean delay_with_button_interrupt(int milliseconds){
+    return _delay(milliseconds, TRUE);
 }
 
 void setup(void){
@@ -67,27 +93,33 @@ void loop(){
             state = READY;
             break;
         case READY: {
-            boolean green_btn_pressed = led_blink_ready();
+            boolean green_btn_pressed = game_ready();
             if (green_btn_pressed){
-                enabled_all_leds(FALSE);
                 state = DEMONSTRATION;
             }
             break;
         }
         case DEMONSTRATION:
-            led_demonstration_start();
-            led_demonstration_main(demonstration_led_count, demonstration_on_millis, &pressed_button_pins);
+            game_demonstrate_start();
+            game_demonstration_main(demonstration_led_count, demonstration_on_millis, &pressed_button_pins);
             all_led_blink_short();
             state = IMITATION;
             break;
-        case IMITATION:
+        case IMITATION: {
+            boolean sequence_passed = game_imitation(demonstration_led_count, demonstration_on_millis, &pressed_button_pins);
+            if (sequence_passed) state = TRANSITION;
+            else state = LOST;
             break;
+            }
         case LOST:
+            game_lost(level);
+            state = READY;
             break;
         case TRANSITION:
+            game_transition();
             break;
         case END:
-            led_blink_end();
+            game_end();
             state = READY;
             break;
         

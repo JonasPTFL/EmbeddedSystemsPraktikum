@@ -27,6 +27,13 @@ void enable_led(int led, boolean state){
     }
 }
 
+void all_led_blink_short(){
+    enabled_all_leds(TRUE);
+    delay(T_SHORT);
+    enabled_all_leds(FALSE);
+    delay(T_SHORT);
+}
+
 void display_number_binary(int number){
     for(int i = 0; i < LED_COUNT; i++){
       int led_pin = led_pin_at_position(i);
