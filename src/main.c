@@ -8,6 +8,7 @@ game_state state = INITIAL;
 int demonstration_on_millis = T_LONG;
 int demonstration_led_count = 3;
 int level = 1;
+int pressed_button_pins [10];
 
 void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1 << gpio_pin);
@@ -75,8 +76,9 @@ void loop(){
         }
         case DEMONSTRATION:
             led_demonstration_start();
-            led_demonstration_main(demonstration_led_count, demonstration_on_millis);
+            led_demonstration_main(demonstration_led_count, demonstration_on_millis, &pressed_button_pins);
             all_led_blink_short();
+            state = IMITATION;
             break;
         case IMITATION:
             break;
@@ -85,6 +87,8 @@ void loop(){
         case TRANSITION:
             break;
         case END:
+            led_blink_end();
+            state = READY;
             break;
         
         default:

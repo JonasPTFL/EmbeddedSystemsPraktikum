@@ -27,6 +27,14 @@ void enable_led(int led, boolean state){
     }
 }
 
+void display_number_binary(int number){
+    for(int i = 0; i < LED_COUNT; i++){
+      int led_pin = led_pin_at_position(i);
+      boolean bit_at_position = ( number >> ( LED_COUNT-i-1 ) ) & 0x01;
+      enable_led(led_pin, bit_at_position);
+    }
+}
+
 int led_pin_at_position(int pos){
   switch (pos)
   {

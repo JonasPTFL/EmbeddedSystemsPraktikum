@@ -34,15 +34,31 @@ void led_demonstration_start(){
     delay(T_SHORT);
 }
 
-void led_demonstration_main(int led_count, int on_milliseconds){
+void led_demonstration_main(int step_count, int on_milliseconds, int * led_pins []){
     enabled_all_leds(FALSE);
-    for (int i = 0; i < led_count; i++){
+    for (int i = 0; i < step_count; i++){
         int random_led_pin = led_pin_at_position(nearly_random_number() % 5);
+        (*led_pins)[i] = random_led_pin;
         enable_led(random_led_pin, TRUE);
         delay(on_milliseconds);
         enable_led(random_led_pin, FALSE);
         delay(T_SHORT);
     }
+}
+
+
+void led_blink_end(){
+    for (int i = 1; i <= 4; i++){
+        enabled_all_leds(TRUE);
+
+        if (i == 1 || i == 4) delay(T_SHORT);
+        else delay(T_LONG);
+
+        enabled_all_leds(FALSE);
+        delay(T_SHORT);
+    }
+
+    delay(3000);
 }
 
 #endif
