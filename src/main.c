@@ -2,11 +2,12 @@
 #include "game.h"
 #include "functions.h"
 #include "led_control.h"
-#include <stdio.h>
 #include <time.h>
 
 game_state state = INITIAL;
-
+int demonstration_on_millis = T_LONG;
+int demonstration_led_count = 3;
+int level = 1;
 
 void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1 << gpio_pin);
@@ -14,6 +15,10 @@ void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_INPUT_EN) |= 1 << gpio_pin;
 	REG(GPIO_BASE + GPIO_OUTPUT_EN) &= ~(1 << gpio_pin);
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1 << gpio_pin);
+}
+
+unsigned nearly_random_number(){
+    return 0;
 }
 
 boolean is_pressed(int button){
@@ -42,6 +47,7 @@ boolean delay_with_interrupt(int milliseconds, int interrupt_button_pin){
 }
 
 void setup(void){
+
     setup_led(GREEN_LED);
     setup_led(BLUE_LED);
     setup_led(YELLOW_LED);
@@ -56,7 +62,7 @@ void setup(void){
 void loop(){
     switch (state){
         case INITIAL:
-            led_blink_initial();
+            all_led_blink_short();
             state = READY;
             break;
         case READY: {
@@ -68,6 +74,9 @@ void loop(){
             break;
         }
         case DEMONSTRATION:
+            led_demonstration_start();
+            led_demonstration_main(demonstration_led_count, demonstration_on_millis);
+            all_led_blink_short();
             break;
         case IMITATION:
             break;
