@@ -9,7 +9,7 @@ boolean game_ready(){
     for (int i = 0; i < LED_COUNT; i++){
         enabled_all_leds(FALSE);
         enable_led(led_pin_at_position(i), TRUE);
-        boolean interrupted = delay_with_button_interrupt(T_SHORT);
+        boolean interrupted = delay_with_specific_button_interrupt(T_SHORT, GREEN_BUTTON);
         if (interrupted && is_pressed(GREEN_BUTTON)){
             enabled_all_leds(FALSE);
             return TRUE;
@@ -39,10 +39,11 @@ void game_demonstration_main(int step_count, int on_milliseconds, int led_pins [
         delay(T_SHORT);
     }
 }
-boolean game_imitation(int step_count, int waiting_time, int led_pins []){
+boolean game_imitation(int step_count, int waiting_time, int led_pins[]){
     for (int i = 0; i < step_count; i++){
-        boolean button_pressed_in_time = delay_with_button_interrupt(waiting_time);
+        boolean button_pressed_in_time = delay_with_any_button_interrupt(waiting_time);
         int current_led_pin = led_pins[i];
+        
         if (button_pressed_in_time && is_only_pressed(get_button_for_led(current_led_pin))){
             enable_led(current_led_pin, TRUE);
             delay(T_SHORT);
@@ -58,20 +59,33 @@ boolean game_imitation(int step_count, int waiting_time, int led_pins []){
 void game_lost(int reached_level){
     for (int i = 0; i < 5; i++){
         enable_led(RED_LED, TRUE);
-
         delay(T_SHORT);
         
         enable_led(RED_LED, FALSE);
         delay(T_SHORT);
-
-        display_number_binary(reached_level);
-
-        delay(T_VERY_LONG); 
     }
+
+    display_number_binary(reached_level);
+    delay(T_VERY_LONG); 
 }
 
 void game_transition(){
+    for (int i = 0; i < 5; i++){
+        display_number_binary(BINNARY_TRANSITION_NUMBER_1); 
+        delay(T_SHORT);
 
+        display_number_binary(BINNARY_TRANSITION_NUMBER_2);
+        delay(T_SHORT);
+    }
+    enabled_all_leds(FALSE);
+}
+
+void game_evaluate_round(int level, int* demonstration_led_count, int* demonstration_on_millis){
+    if (level <= 4 || ( level >= 9 && level <= 12 )){
+        (*demonstration_led_count)++;
+    } else if(( level >= 5 && level <= 8 ) ||  (level >= 13 && level <= 16 )){
+        *demonstration_on_millis -= (*demonstration_on_millis) * 0.1;
+    }
 }
 
 void game_end(){
