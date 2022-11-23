@@ -75,7 +75,7 @@ boolean delay_with_specific_button_interrupt(int milliseconds, int button){
     long pause;
     clock_t now,then;
 
-    pause = milliseconds*(CLOCKS_PER_SEC/5000);
+    pause = milliseconds*(CLOCKS_PER_SEC/1000);
     now = then = clock();
     while( (now-then) < pause ) {
         if (is_pressed(button))return TRUE;
@@ -89,7 +89,7 @@ void delay(int milliseconds){
     long pause;
     clock_t now,then;
 
-    pause = milliseconds*(CLOCKS_PER_SEC/5000); // TODO klären, wieso es mit 5000 passt, obwohl 1sec=1000ms + TODO redundanten delay code verbessern
+    pause = milliseconds*(CLOCKS_PER_SEC/1000);
     now = then = clock();
     while( (now-then) < pause ) {
         now = clock();
