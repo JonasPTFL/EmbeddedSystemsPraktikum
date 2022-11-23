@@ -9,6 +9,10 @@ int demonstration_on_millis = T_LONG;
 int demonstration_led_count = 3;
 int level = 1;
 int pressed_button_pins[10];
+int seed = 0;
+
+unsigned short lfsr = 0xACE1u;
+unsigned bit;
 
 void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1 << gpio_pin);
@@ -19,7 +23,9 @@ void setup_button(int gpio_pin){
 }
 
 unsigned nearly_random_number(){
-    return 0;
+
+    bit  = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5) ) & 1;
+    return ((lfsr =  (lfsr >> 1) | (bit << 15))+seed) % 4;
 }
 
 boolean is_pressed(int button){
@@ -118,6 +124,9 @@ void loop(){
         case READY: {
             boolean green_btn_pressed = game_ready();
             if (green_btn_pressed){
+
+                if (seed == 0) seed = clock();
+
                 state = DEMONSTRATION;
             }
             break;
@@ -135,16 +144,16 @@ void loop(){
             break;
             }
         case LOST:
-            game_lost(level);
+            game_lost(level-1);
             reset_game();
             state = READY;
             break;
         case TRANSITION:
             game_transition();
+            level++;
             if (level > LEVEL_COUNT) state = END;
             else {
                 game_evaluate_round(level, &demonstration_led_count, &demonstration_on_millis);
-                level++;
                 state = DEMONSTRATION;
             }
             break;
