@@ -24,7 +24,7 @@ void display_number_binary(int);
 boolean game_ready();
 void game_demonstrate_start();
 void game_demonstration_main(int, int, int[]);
-boolean game_imitation(int, int, int[]);
+boolean game_imitation(int, int, const int[]);
 void game_evaluate_round(int, int*, int*);
 void game_transition();
 void game_lost(int);

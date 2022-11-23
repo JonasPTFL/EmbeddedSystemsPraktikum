@@ -39,7 +39,7 @@ void game_demonstration_main(int step_count, int on_milliseconds, int led_pins [
         delay(T_SHORT);
     }
 }
-boolean game_imitation(int step_count, int waiting_time, int led_pins[]){
+boolean game_imitation(int step_count, int waiting_time, const int led_pins[]){
     for (int i = 0; i < step_count; i++){
         boolean button_pressed_in_time = delay_with_any_button_interrupt(waiting_time);
         int current_led_pin = led_pins[i];
@@ -83,7 +83,7 @@ void game_transition(){
 void game_evaluate_round(int level, int* demonstration_led_count, int* demonstration_on_millis){
     if (level <= 4 || ( level >= 9 && level <= 12 )){
         (*demonstration_led_count)++;
-    } else if(( level >= 5 && level <= 8 ) ||  (level >= 13 && level <= 16 )){
+    } else if(level <= 8 ||  (level >= 13 && level <= 16 )){
         *demonstration_on_millis -= (*demonstration_on_millis) * 0.1;
     }
 }

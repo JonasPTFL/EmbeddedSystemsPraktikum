@@ -29,7 +29,7 @@ unsigned nearly_random_number(){
 }
 
 boolean is_pressed(int button){
-    if((REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) return TRUE;
+    if((int)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) return TRUE;
     else return FALSE;
 }
 
