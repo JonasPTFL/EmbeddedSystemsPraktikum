@@ -34,12 +34,12 @@ void all_led_blink_short(void){
     delay(T_SHORT);
 }
 
-void display_number_binary(uint32_t number){
-    for(uint32_t i = 0; i < (uint32_t)LED_COUNT; i++){
+void display_number_binary(unsigned_int number){
+    for(unsigned_int i = 0; i < (unsigned_int)LED_COUNT; i++){
       int led_pin = led_pin_at_position(i);
-      uint32_t bit_at_position = (uint32_t)( (uint32_t) number >> (uint32_t) ( (uint32_t)LED_COUNT-i-(uint32_t)1 ) ) & (uint32_t)0x01;
+      unsigned_int bit_at_position = (unsigned_int)( (unsigned_int) number >> (unsigned_int) ( (unsigned_int)LED_COUNT-i-(unsigned_int)1 ) ) & (unsigned_int)0x01;
       boolean led_enabled;
-      if (bit_at_position == (uint32_t)1){
+      if (bit_at_position == (unsigned_int)1){
         led_enabled = TRUE;
       } else {
         led_enabled = FALSE;

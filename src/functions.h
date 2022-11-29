@@ -18,7 +18,7 @@ static unsigned int nearly_random_number(void);
 static void all_led_blink_short(void);
 static void enable_led(int led, boolean state);
 static void enabled_all_leds(boolean state);
-static void display_number_binary(uint32_t number);
+static void display_number_binary(unsigned_int number);
 
 /* game functions  */
 static boolean game_ready(void);
@@ -29,5 +29,9 @@ static void game_evaluate_round(int level, int* demonstration_led_count, int* de
 static void game_transition(void);
 static void game_lost(int reached_level);
 static void game_end(void);
+
+static void setup(void);
+static void reset_game(void);
+static void loop(void);
 
 #endif

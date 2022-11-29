@@ -32,6 +32,8 @@
 #define T_VERY_LONG 2000
 
 typedef unsigned long unsigned_long;
+typedef	unsigned int unsigned_int;
+
 
 typedef enum {
     FALSE, TRUE

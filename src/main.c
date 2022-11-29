@@ -4,13 +4,10 @@
 #include "led_control.h"
 #include <time.h>
 
-static game_state state = INITIAL;
 static int demonstration_on_millis = T_LONG;
 static int demonstration_led_count = 3;
 static int level = 1;
-static int pressed_button_pins[10];
 static u_int seed = 0;
-static u_int lfsr = 0xADEu;
 
 void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
@@ -21,7 +18,8 @@ void setup_button(int gpio_pin){
 }
 
 unsigned int nearly_random_number(void){
-    u_int bit = (u_int)((u_int)lfsr >> (u_int)0) ^ ((u_int)lfsr >> (u_int)2) ^ ((u_int)lfsr >> (u_int)3) ^ ((u_int)lfsr >> (u_int)5)  & 1;
+    static u_int lfsr = 0xADEu;
+    u_int bit = (u_int)((u_int)lfsr >> (u_int)0) ^ ((u_int)lfsr >> (u_int)2) ^ ((u_int)lfsr >> (u_int)3) ^ ((u_int)lfsr >> (u_int)5)  & (u_int)1;
     lfsr =  ((u_int)lfsr >> (u_int)1) | ((u_int)bit << (u_int)15);
     return ((lfsr)+seed) % (u_int)4;
 }
@@ -131,6 +129,8 @@ void reset_game(void){
 }
 
 void loop(void){
+    static int pressed_button_pins[10];
+    static game_state state = INITIAL;
     switch (state){
         case INITIAL:
             all_led_blink_short();
@@ -140,7 +140,7 @@ void loop(void){
             boolean green_btn_pressed = game_ready();
             if (green_btn_pressed == TRUE){
 
-                if (seed == 0) {
+                if (seed == (u_int)0) {
                     seed = clock();
                 }
 
