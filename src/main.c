@@ -19,7 +19,8 @@ void setup_button(int gpio_pin){
 
 unsigned int nearly_random_number(void){
     static u_int lfsr = 0xADEu;
-    u_int bit = (u_int)((u_int)lfsr >> (u_int)0) ^ ((u_int)lfsr >> (u_int)2) ^ ((u_int)lfsr >> (u_int)3) ^ ((u_int)lfsr >> (u_int)5)  & (u_int)1;
+    u_int bit = (u_int)(((((u_int)lfsr >> (u_int)0) ^ ((u_int)lfsr >> (u_int)2)) ^ ((u_int)lfsr >> (u_int)3)) ^ ((u_int)lfsr >> (u_int)5))  & (u_int)1;
+
     lfsr =  ((u_int)lfsr >> (u_int)1) | ((u_int)bit << (u_int)15);
     return ((lfsr)+seed) % (u_int)4;
 }
@@ -35,7 +36,7 @@ boolean is_pressed(int button){
 }
 
 boolean is_only_pressed(int button){
-    return is_pressed(button)  // TODO can be simplified??
+    return is_pressed(button)
         && ((button == GREEN_BUTTON) || ((button != GREEN_BUTTON) && (!is_pressed(GREEN_BUTTON))))
         && ((button == BLUE_BUTTON) || ((button != BLUE_BUTTON) && (!is_pressed(BLUE_BUTTON))))
         && ((button == YELLOW_BUTTON) || ((button != YELLOW_BUTTON) && (!is_pressed(YELLOW_BUTTON))))
@@ -60,7 +61,7 @@ boolean delay_with_any_button_interrupt(unsigned_long milliseconds){
     clock_t now;
     clock_t then;
 
-    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)5000)));
+    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)MILLISECONDS_PER_SECOND)));
     now = clock();
     then = now;
     boolean interrupted = FALSE;
@@ -82,7 +83,7 @@ boolean delay_with_specific_button_interrupt(unsigned_long milliseconds, int but
     clock_t now;
     clock_t then;
 
-    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)5000)));
+    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)MILLISECONDS_PER_SECOND)));
     now = clock();
     then = now;
     boolean interrupted = FALSE;
@@ -101,7 +102,7 @@ void delay(unsigned_long milliseconds){
     clock_t now;
     clock_t then;
 
-    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)5000)));
+    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)MILLISECONDS_PER_SECOND)));
     now = clock();
     then = now;
     while(((unsigned_long)(now-then)) < pause) {

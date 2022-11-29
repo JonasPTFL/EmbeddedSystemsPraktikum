@@ -32,6 +32,7 @@ TYPES_H
 #define T_SHORT 500
 #define T_LONG 1000
 #define T_VERY_LONG 2000
+#define MILLISECONDS_PER_SECOND 1000
 
 typedef unsigned long unsigned_long;
 typedef	unsigned int unsigned_int;
