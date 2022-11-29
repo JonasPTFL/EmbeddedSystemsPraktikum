@@ -1,6 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
+GAME_H
+
 #include "functions.h"
 #include "types.h"
 #include <time.h>

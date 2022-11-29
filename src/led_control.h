@@ -1,6 +1,8 @@
 #ifndef LED_CONTROL_H
 #define LED_CONTROL_H
 
+LED_CONTROL_H
+
 #include "functions.h"
 #include "types.h"
 

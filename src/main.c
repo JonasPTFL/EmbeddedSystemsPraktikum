@@ -1,7 +1,7 @@
-#include "types.h"
 #include "game.h"
-#include "functions.h"
 #include "led_control.h"
+#include "types.h"
+#include "functions.h"
 #include <time.h>
 
 static int demonstration_on_millis = T_LONG;

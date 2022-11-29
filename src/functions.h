@@ -1,6 +1,8 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+FUNCTIONS_H
+
 #include "types.h"
 
 static void setup_led(int gpio_pin);

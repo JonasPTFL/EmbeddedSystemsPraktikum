@@ -1,6 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+TYPES_H
+
 #define REG(P) (*(volatile uint32_t *) (P))
 
 #define GPIO_BASE 0x10012000
