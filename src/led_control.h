@@ -20,7 +20,7 @@ void enabled_all_leds(boolean state){
 }
 
 void enable_led(int led, boolean state){
-    if (state){
+    if (state == TRUE){
 		  REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << (uint32_t) led);
     } else{
 	    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~((uint32_t)1 << (uint32_t) led);
@@ -38,14 +38,14 @@ void display_number_binary(int number){
     for(int i = 0; i < LED_COUNT; i++){
       int led_pin = led_pin_at_position(i);
       int bit_at_position = (int)( (uint32_t) number >> (uint32_t) ( LED_COUNT-i-1 ) ) & (uint32_t)0x01;
-      boolean enabled_led;
+      boolean led_enabled;
       if (bit_at_position == 1){
-        enabled_led = TRUE;
+        led_enabled = TRUE;
       } else {
-        enabled_led = FALSE;
+        led_enabled = FALSE;
       }
       
-      enable_led(led_pin, enable_led);
+      enable_led(led_pin, led_enabled);
     }
 }
 

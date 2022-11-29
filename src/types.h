@@ -1,8 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <stdio.h>
-
 #define REG(P) (*(volatile uint32_t *) (P))
 
 #define GPIO_BASE 0x10012000
@@ -32,6 +30,8 @@
 #define T_SHORT 500
 #define T_LONG 1000
 #define T_VERY_LONG 2000
+
+typedef unsigned long unsigned_long;
 
 typedef enum {
     FALSE, TRUE

@@ -30,8 +30,11 @@ unsigned int nearly_random_number(void){
 
 boolean is_pressed(int button){
     boolean result;
-    if((int)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) result = TRUE;
-    else result = FALSE;
+    if((int)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) {
+        result = TRUE;
+    } else {
+        result = FALSE;
+    }
     return result;
 }
 
@@ -51,21 +54,21 @@ int get_button_for_led(int led_pin){
     case BLUE_LED: button_pin = BLUE_BUTTON; break;
     case YELLOW_LED: button_pin = YELLOW_BUTTON; break;
     case RED_LED: button_pin = RED_BUTTON; break;
-    default: button_pin = -1;
+    default: button_pin = -1; break;
     }
     return button_pin;
 }
 
-boolean delay_with_any_button_interrupt(u_long milliseconds){
-    u_long pause;
+boolean delay_with_any_button_interrupt(unsigned_long milliseconds){
+    unsigned_long pause;
     clock_t now;
     clock_t then;
 
-    pause = (u_long)(milliseconds*((u_long)(CLOCKS_PER_SEC/5000)));
+    pause = (unsigned_long)(milliseconds*((unsigned_long)(CLOCKS_PER_SEC/5000)));
     now = clock();
-    then = now();
+    then = now;
     boolean interrupted = FALSE;
-    while( (interrupted == FALSE) && (((u_long)(now-then)) < pause)) {
+    while( (interrupted == FALSE) && (((unsigned_long)(now-then)) < pause)) {
         if (is_pressed(GREEN_BUTTON) 
         || is_pressed(BLUE_BUTTON) 
         || is_pressed(YELLOW_BUTTON) 
@@ -78,28 +81,33 @@ boolean delay_with_any_button_interrupt(u_long milliseconds){
     return interrupted;
 }
 
-boolean delay_with_specific_button_interrupt(u_long milliseconds, int button){
-    u_long pause;
+boolean delay_with_specific_button_interrupt(unsigned_long milliseconds, int button){
+    unsigned_long pause;
     clock_t now;
     clock_t then;
-
-    pause = (u_long)(milliseconds*((u_long)(CLOCKS_PER_SEC/5000)));
-    now = then = clock();
-    while((u_long)(now-then) < pause) {
-        if (is_pressed(button))return TRUE;
+    pause = (unsigned_long)(milliseconds*((unsigned_long)(CLOCKS_PER_SEC/5000)));
+    now = clock();
+    then = now;
+    boolean interrupted = FALSE;
+    while( (interrupted == FALSE) && ((unsigned_long)(now-then) < pause)) {
+        if (is_pressed(button) == TRUE) {
+            interrupted = TRUE;
+        }
 
         now = clock();
     }
-    return FALSE;
+    return interrupted;
 }
 
-void delay(u_long milliseconds){
-    u_long pause;
-    clock_t now,then;
+void delay(unsigned_long milliseconds){
+    unsigned_long pause;
+    clock_t now;
+    clock_t then;
 
-    pause = (u_long)(milliseconds*((u_long)(CLOCKS_PER_SEC/5000)));
-    now = then = clock();
-    while(((u_long)(now-then)) < pause) {
+    pause = (unsigned_long)(milliseconds*((unsigned_long)(CLOCKS_PER_SEC/5000)));
+    now = clock();
+    then = now;
+    while(((unsigned_long)(now-then)) < pause) {
         now = clock();
     }
 }
@@ -131,9 +139,11 @@ void loop(void){
             break;
         case READY: {
             boolean green_btn_pressed = game_ready();
-            if (green_btn_pressed){
+            if (green_btn_pressed == TRUE){
 
-                if (seed == 0) seed = clock();
+                if (seed == 0) {
+                    seed = clock();
+                }
 
                 state = DEMONSTRATION;
             }
@@ -145,12 +155,15 @@ void loop(void){
             all_led_blink_short();
             state = IMITATION;
             break;
-        case IMITATION: {
+        case IMITATION: 
+            ;
             boolean sequence_passed = game_imitation(demonstration_led_count, demonstration_on_millis, pressed_button_pins);
-            if (sequence_passed) state = TRANSITION;
-            else state = LOST;
-            break;
+            if (sequence_passed == TRUE) {
+                state = TRANSITION;
+            } else {
+                state = LOST;
             }
+            break;
         case LOST:
             game_lost(level-1);
             reset_game();
@@ -159,8 +172,9 @@ void loop(void){
         case TRANSITION:
             game_transition();
             level++;
-            if (level > LEVEL_COUNT) state = END;
-            else {
+            if (level > LEVEL_COUNT) {
+                state = END;
+            } else {
                 game_evaluate_round(level, &demonstration_led_count, &demonstration_on_millis);
                 state = DEMONSTRATION;
             }
