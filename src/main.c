@@ -9,28 +9,26 @@ static int demonstration_on_millis = T_LONG;
 static int demonstration_led_count = 3;
 static int level = 1;
 static int pressed_button_pins[10];
-static int seed = 0;
-
-static unsigned short lfsr = 0xACE1u;
-static unsigned int bit;
+static u_int seed = 0;
+static u_int lfsr = 0xADEu;
 
 void setup_button(int gpio_pin){
-	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1 << gpio_pin);
-	REG(GPIO_BASE + GPIO_PUE) |= 1 << gpio_pin;
-	REG(GPIO_BASE + GPIO_INPUT_EN) |= 1 << gpio_pin;
-	REG(GPIO_BASE + GPIO_OUTPUT_EN) &= ~(1 << gpio_pin);
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1 << gpio_pin);
+	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
+	REG(GPIO_BASE + GPIO_PUE) |= (uint32_t)1 << (uint32_t) gpio_pin;
+	REG(GPIO_BASE + GPIO_INPUT_EN) |= (uint32_t)1 << (uint32_t) gpio_pin;
+	REG(GPIO_BASE + GPIO_OUTPUT_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
+	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
 }
 
 unsigned int nearly_random_number(void){
-
-    bit  = (((int)lfsr >> 0) ^ ((int)lfsr >> 2) ^ ((int)lfsr >> 3) ^ ((int)lfsr >> 5) ) & 1;
-    return (int)(((lfsr =  (int)((int)lfsr >> 1) | (bit << 15))+seed) % 4);
+    u_int bit = (u_int)((u_int)lfsr >> (u_int)0) ^ ((u_int)lfsr >> (u_int)2) ^ ((u_int)lfsr >> (u_int)3) ^ ((u_int)lfsr >> (u_int)5)  & 1;
+    lfsr =  ((u_int)lfsr >> (u_int)1) | ((u_int)bit << (u_int)15);
+    return ((lfsr)+seed) % (u_int)4;
 }
 
 boolean is_pressed(int button){
     boolean result;
-    if((int)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) {
+    if((uint32_t)(REG(GPIO_BASE + GPIO_INPUT_VAL) & ((uint32_t)1 << (uint32_t) button)) == (uint32_t) 0) {
         result = TRUE;
     } else {
         result = FALSE;
@@ -64,7 +62,7 @@ boolean delay_with_any_button_interrupt(unsigned_long milliseconds){
     clock_t now;
     clock_t then;
 
-    pause = (unsigned_long)(milliseconds*((unsigned_long)(CLOCKS_PER_SEC/5000)));
+    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)5000)));
     now = clock();
     then = now;
     boolean interrupted = FALSE;
@@ -85,7 +83,8 @@ boolean delay_with_specific_button_interrupt(unsigned_long milliseconds, int but
     unsigned_long pause;
     clock_t now;
     clock_t then;
-    pause = (unsigned_long)(milliseconds*((unsigned_long)(CLOCKS_PER_SEC/5000)));
+
+    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)5000)));
     now = clock();
     then = now;
     boolean interrupted = FALSE;
@@ -104,7 +103,7 @@ void delay(unsigned_long milliseconds){
     clock_t now;
     clock_t then;
 
-    pause = (unsigned_long)(milliseconds*((unsigned_long)(CLOCKS_PER_SEC/5000)));
+    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)5000)));
     now = clock();
     then = now;
     while(((unsigned_long)(now-then)) < pause) {
