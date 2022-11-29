@@ -4,15 +4,15 @@
 #include "led_control.h"
 #include <time.h>
 
-game_state state = INITIAL;
-int demonstration_on_millis = T_LONG;
-int demonstration_led_count = 3;
-int level = 1;
-int pressed_button_pins[10];
-int seed = 0;
+static game_state state = INITIAL;
+static int demonstration_on_millis = T_LONG;
+static int demonstration_led_count = 3;
+static int level = 1;
+static int pressed_button_pins[10];
+static int seed = 0;
 
-unsigned short lfsr = 0xACE1u;
-unsigned bit;
+static unsigned short lfsr = 0xACE1u;
+static unsigned int bit;
 
 void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1 << gpio_pin);
@@ -22,15 +22,17 @@ void setup_button(int gpio_pin){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1 << gpio_pin);
 }
 
-unsigned nearly_random_number(){
+unsigned int nearly_random_number(void){
 
-    bit  = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5) ) & 1;
+    bit  = (((int)lfsr >> 0) ^ ((int)lfsr >> 2) ^ ((int)lfsr >> 3) ^ ((int)lfsr >> 5) ) & 1;
     return ((lfsr =  (lfsr >> 1) | (bit << 15))+seed) % 4;
 }
 
 boolean is_pressed(int button){
-    if((int)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) return TRUE;
-    else return FALSE;
+    boolean result;
+    if((int)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1 << button)) <= 0) result = TRUE;
+    else result = FALSE;
+    return result;
 }
 
 boolean is_only_pressed(int button){
@@ -42,14 +44,16 @@ boolean is_only_pressed(int button){
 }
 
 int get_button_for_led(int led_pin){
+    int button_pin;
     switch (led_pin)
     {
-    case GREEN_LED: return GREEN_BUTTON;
-    case BLUE_LED: return BLUE_BUTTON;
-    case YELLOW_LED: return YELLOW_BUTTON;
-    case RED_LED: return RED_BUTTON;
-    default: return -1;
+    case GREEN_LED: button_pin = GREEN_BUTTON; break;
+    case BLUE_LED: button_pin = BLUE_BUTTON; break;
+    case YELLOW_LED: button_pin = YELLOW_BUTTON; break;
+    case RED_LED: button_pin = RED_BUTTON; break;
+    default: button_pin = -1;
     }
+    return button_pin;
 }
 
 boolean delay_with_any_button_interrupt(int milliseconds){
@@ -58,17 +62,18 @@ boolean delay_with_any_button_interrupt(int milliseconds){
 
     pause = milliseconds*(CLOCKS_PER_SEC/5000);
     now = then = clock();
-    while( (now-then) < pause ) {
+    boolean interrupted = FALSE;
+    while( interrupted == FALSE && ((long)(now-then)) < pause ) {
         if (is_pressed(GREEN_BUTTON) 
         || is_pressed(BLUE_BUTTON) 
         || is_pressed(YELLOW_BUTTON) 
         || is_pressed(RED_BUTTON)){
-            return TRUE;
+            interrupted = TRUE;
         }
        
         now = clock();
     }
-    return FALSE;
+    return interrupted;
 }
 
 boolean delay_with_specific_button_interrupt(int milliseconds, int button){
@@ -77,7 +82,7 @@ boolean delay_with_specific_button_interrupt(int milliseconds, int button){
 
     pause = milliseconds*(CLOCKS_PER_SEC/1000);
     now = then = clock();
-    while( (now-then) < pause ) {
+    while((long)(now-then) < pause ) {
         if (is_pressed(button))return TRUE;
 
         now = clock();
@@ -91,7 +96,7 @@ void delay(int milliseconds){
 
     pause = milliseconds*(CLOCKS_PER_SEC/1000);
     now = then = clock();
-    while( (now-then) < pause ) {
+    while((long)(now-then) < pause) {
         now = clock();
     }
 }
@@ -109,13 +114,13 @@ void setup(void){
     setup_button(RED_BUTTON);
 }
 
-void reset_game(){
+void reset_game(void){
     level = 1;
     demonstration_on_millis = T_SHORT;
     demonstration_led_count = 3;
 }
 
-void loop(){
+void loop(void){
     switch (state){
         case INITIAL:
             all_led_blink_short();

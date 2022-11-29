@@ -33,8 +33,6 @@
 #define T_LONG 1000
 #define T_VERY_LONG 2000
 
-// typedef unsigned int uint32_t; //wird schon in stdio.h definiert
-
 typedef enum {
     FALSE, TRUE
 } boolean;
