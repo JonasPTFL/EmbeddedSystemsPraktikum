@@ -85,9 +85,9 @@ void game_transition(void){
 }
 
 void game_evaluate_round(int level, int* demonstration_led_count, int* demonstration_on_millis){
-    if (level <= 4 || ( level >= 9 && level <= 12 )){
+    if ((level <= 4) || ( (level >= 9) && (level <= 12) )){
         (*demonstration_led_count)++;
-    } else if(level <= 8 ||  (level >= 13 && level <= 16 )){
+    } else if((level <= 8) ||  ((level >= 13) && (level <= 16) )){
         *demonstration_on_millis -= (*demonstration_on_millis) * 0.1;
     }
 }
@@ -96,7 +96,7 @@ void game_end(void){
     for (int i = 1; i <= 4; i++){
         enabled_all_leds(TRUE);
 
-        if (i == 1 || i == 4) delay(T_SHORT);
+        if ((i == 1) || (i == 4)) delay(T_SHORT);
         else delay(T_LONG);
 
         enabled_all_leds(FALSE);

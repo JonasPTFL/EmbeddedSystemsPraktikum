@@ -9,9 +9,9 @@ boolean is_pressed(int button);
 boolean is_only_pressed(int button);
 int get_button_for_led(int led_pin);
 int led_pin_at_position(int pos);
-void delay(int milliseconds);
-boolean delay_with_any_button_interrupt(int milliseconds);
-boolean delay_with_specific_button_interrupt(int milliseconds, int button);
+void delay(u_long milliseconds);
+boolean delay_with_any_button_interrupt(u_long milliseconds);
+boolean delay_with_specific_button_interrupt(u_long milliseconds, int button);
 unsigned int nearly_random_number(void);
 
 /* led functions */

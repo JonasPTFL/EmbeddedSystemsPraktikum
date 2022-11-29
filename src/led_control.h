@@ -37,8 +37,15 @@ void all_led_blink_short(void){
 void display_number_binary(int number){
     for(int i = 0; i < LED_COUNT; i++){
       int led_pin = led_pin_at_position(i);
-      boolean bit_at_position = (boolean)( (uint32_t) number >> (uint32_t) ( LED_COUNT-i-1 ) ) & 0x01;
-      enable_led(led_pin, bit_at_position);
+      int bit_at_position = (int)( (uint32_t) number >> (uint32_t) ( LED_COUNT-i-1 ) ) & (uint32_t)0x01;
+      boolean enabled_led;
+      if (bit_at_position == 1){
+        enabled_led = TRUE;
+      } else {
+        enabled_led = FALSE;
+      }
+      
+      enable_led(led_pin, enable_led);
     }
 }
 
