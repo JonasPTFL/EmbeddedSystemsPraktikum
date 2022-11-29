@@ -7,6 +7,7 @@ LED_CONTROL_H
 #include "types.h"
 
 
+/* sets up the given led pin  */
 void setup_led(int gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
 	REG(GPIO_BASE + GPIO_INPUT_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
@@ -14,6 +15,7 @@ void setup_led(int gpio_pin){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << (uint32_t) gpio_pin);
 }
 
+/* enables all leds with the given state  */
 void enabled_all_leds(boolean state){
     enable_led(GREEN_LED, state);
     enable_led(BLUE_LED, state);
@@ -21,6 +23,7 @@ void enabled_all_leds(boolean state){
     enable_led(RED_LED, state);
 }
 
+/* enables a pecific led with the given state  */
 void enable_led(int led, boolean state){
     if (state == TRUE){
 		  REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << (uint32_t) led);
@@ -29,6 +32,7 @@ void enable_led(int led, boolean state){
     }
 }
 
+/* lets the leds blink up for the time period T_SHORT  */
 void all_led_blink_short(void){
     enabled_all_leds(TRUE);
     delay(T_SHORT);
@@ -36,6 +40,7 @@ void all_led_blink_short(void){
     delay(T_SHORT);
 }
 
+/* displays the given number binary with the 4 leds  */
 void display_number_binary(unsigned_int number){
     for(unsigned_int i = 0; i < (unsigned_int)LED_COUNT; i++){
       int led_pin = led_pin_at_position(i);
@@ -51,6 +56,7 @@ void display_number_binary(unsigned_int number){
     }
 }
 
+/* returns the led pin on the given position  */
 int led_pin_at_position(int pos){
   int led_pin;
   switch (pos)

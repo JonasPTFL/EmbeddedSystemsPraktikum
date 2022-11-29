@@ -34,6 +34,13 @@ TYPES_H
 #define T_VERY_LONG 2000
 #define MILLISECONDS_PER_SECOND 1000
 
+#define INITIAL_DEMONSTRATION_LED_COUNT 3
+#define INITIAL_LEVEL 1
+#define INITIAL_RAND_SEED 0
+
+#define MAX_DEMONSTRATION_LED_COUNT 10
+#define DEMONSTRATION_ON_MILLIS_PRECENTAGE_INCREASE 0.1
+
 typedef unsigned long unsigned_long;
 typedef	unsigned int unsigned_int;
 

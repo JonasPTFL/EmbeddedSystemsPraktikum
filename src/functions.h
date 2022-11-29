@@ -32,6 +32,7 @@ static void game_transition(void);
 static void game_lost(int reached_level);
 static void game_end(void);
 
+/* main functions  */
 static void setup(void);
 static void reset_game(void);
 static void loop(void);

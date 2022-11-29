@@ -7,6 +7,8 @@ GAME_H
 #include "types.h"
 #include <time.h>
 
+
+/* ready game step  */
 boolean game_ready(void){
     boolean result = FALSE;
     for (int i = 0; i < LED_COUNT; i++){
@@ -23,6 +25,7 @@ boolean game_ready(void){
     return result;
 }
 
+/* demonstration game step  */
 void game_demonstrate_start(void){
     enabled_all_leds(TRUE);
     for (int i = (int)LED_COUNT-1; i >= 0; i--){
@@ -32,6 +35,7 @@ void game_demonstrate_start(void){
     delay(T_SHORT);
 }
 
+/* demonstration game step  */
 void game_demonstration_main(int step_count, int on_milliseconds, int led_pins []){
     enabled_all_leds(FALSE);
     for (int i = 0; i < step_count; i++){
@@ -43,6 +47,8 @@ void game_demonstration_main(int step_count, int on_milliseconds, int led_pins [
         delay(T_SHORT);
     }
 }
+
+/* imitation game step  */
 boolean game_imitation(int step_count, int waiting_time, const int led_pins[]){
     boolean result = TRUE;
     for (int i = 0; i < step_count; i++){
@@ -62,6 +68,7 @@ boolean game_imitation(int step_count, int waiting_time, const int led_pins[]){
     return result;
 }
 
+/* game lost step  */
 void game_lost(int reached_level){
     for (int i = 0; i < 5; i++){
         enable_led(RED_LED, TRUE);
@@ -75,6 +82,7 @@ void game_lost(int reached_level){
     delay(T_VERY_LONG); 
 }
 
+/* transition game step  */
 void game_transition(void){
     for (int i = 0; i < 5; i++){
         display_number_binary(BINNARY_TRANSITION_NUMBER_1); 
@@ -86,16 +94,18 @@ void game_transition(void){
     enabled_all_leds(FALSE);
 }
 
+/* evaluation game step  */
 void game_evaluate_round(int level, int* demonstration_led_count, int* demonstration_on_millis){
     if ((level <= 4) || ( (level >= 9) && (level <= 12) )){
         (*demonstration_led_count)++;
     } else {
         if((level <= 8) ||  ((level >= 13) && (level <= 16) )){
-            *demonstration_on_millis -= (*demonstration_on_millis) * 0.1;
+            *demonstration_on_millis -= (*demonstration_on_millis) * DEMONSTRATION_ON_MILLIS_PRECENTAGE_INCREASE;
         }
     }
 }
 
+/* ending game step  */
 void game_end(void){
     for (int i = 1; i <= 4; i++){
         enabled_all_leds(TRUE);
