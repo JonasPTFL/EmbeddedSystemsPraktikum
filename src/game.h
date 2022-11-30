@@ -35,10 +35,10 @@ void game_demonstrate_start(void){
 }
 
 /* demonstration game step  */
-void game_demonstration_main(int step_count, int on_milliseconds, int led_pins []){
+void game_demonstration_main(uint_t step_count, uint32_t on_milliseconds, uint32_t led_pins []){
     enabled_all_leds(FALSE);
     for (int i = 0; i < step_count; i++){
-        int random_led_pin = led_pin_at_position((int)((int)nearly_random_number() % 5));
+        uint32_t random_led_pin = led_pin_at_position((int)((int)nearly_random_number() % 5));
         led_pins[i] = random_led_pin;
         enable_led(random_led_pin, TRUE);
         delay(on_milliseconds);
@@ -48,11 +48,11 @@ void game_demonstration_main(int step_count, int on_milliseconds, int led_pins [
 }
 
 /* imitation game step  */
-boolean game_imitation(int step_count, int waiting_time, const int led_pins[]){
+boolean game_imitation(uint_t step_count, uint32_t waiting_time, const uint32_t led_pins[]){
     boolean result = TRUE;
     for (int i = 0; i < step_count; i++){
         boolean button_pressed_in_time = delay_with_any_button_interrupt(waiting_time);
-        int current_led_pin = led_pins[i];
+        uint32_t current_led_pin = led_pins[i];
         
         if (button_pressed_in_time && is_only_pressed(get_button_for_led(current_led_pin))){
             enable_led(current_led_pin, TRUE);
@@ -68,7 +68,7 @@ boolean game_imitation(int step_count, int waiting_time, const int led_pins[]){
 }
 
 /* game lost step  */
-void game_lost(int reached_level){
+void game_lost(uint_t reached_level){
     for (int i = 0; i < 5; i++){
         enable_led(RED_LED, TRUE);
         delay(T_SHORT);
@@ -94,7 +94,7 @@ void game_transition(void){
 }
 
 /* evaluation game step  */
-void game_evaluate_round(int level, int* demonstration_led_count, int* demonstration_on_millis){
+void game_evaluate_round(uint_t level, uint_t* demonstration_led_count, uint32_t* demonstration_on_millis){
     if ((level <= 4) || ( (level >= 9) && (level <= 12) )){
         (*demonstration_led_count)++;
     } else {

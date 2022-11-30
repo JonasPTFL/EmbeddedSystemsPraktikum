@@ -19,27 +19,27 @@ static uint_t seed = INITIAL_RAND_SEED;
 
 
 /* sets up the button with the given gpio pin  */
-void setup_button(int gpio_pin){
-	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
-	REG(GPIO_BASE + GPIO_PUE) |= (uint32_t)1 << (uint32_t) gpio_pin;
-	REG(GPIO_BASE + GPIO_INPUT_EN) |= (uint32_t)1 << (uint32_t) gpio_pin;
-	REG(GPIO_BASE + GPIO_OUTPUT_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
+void setup_button(uint32_t gpio_pin){
+	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1U << gpio_pin);
+	REG(GPIO_BASE + GPIO_PUE) |= 1U << gpio_pin;
+	REG(GPIO_BASE + GPIO_INPUT_EN) |= 1U << gpio_pin;
+	REG(GPIO_BASE + GPIO_OUTPUT_EN) &= ~(1U << gpio_pin);
+	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << gpio_pin);
 }
 
 /* generates a nearly random number from 0 to 3  */
 unsigned int nearly_random_number(void){
     static uint_t lfsr = 0xADEu;
-    uint_t bit = (uint_t)(((((uint_t)lfsr >> (uint_t)0) ^ ((uint_t)lfsr >> (uint_t)2)) ^ ((uint_t)lfsr >> (uint_t)3)) ^ ((uint_t)lfsr >> (uint_t)5))  & (uint_t)1;
+    uint_t bit = (uint_t)((((lfsr >> 0U) ^ (lfsr >> 2U)) ^ (lfsr >> 3U)) ^ (lfsr >> 5U))  & 1U;
 
-    lfsr =  ((uint_t)lfsr >> (uint_t)1) | ((uint_t)bit << (uint_t)15);
-    return ((lfsr)+seed) % (uint_t)4;
+    lfsr =  (lfsr >> 1U) | (bit << 15U);
+    return (lfsr+seed) % 4U;
 }
 
 /* returns true, if the given button pin is pressed  */
-boolean is_pressed(int button){
+boolean is_pressed(uint32_t button){
     boolean result;
-    if((uint32_t)(REG(GPIO_BASE + GPIO_INPUT_VAL) & ((uint32_t)1 << (uint32_t) button)) == (uint32_t) 0) {
+    if((uint32_t)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1U << button)) == 0U) {
         result = TRUE;
     } else {
         result = FALSE;
@@ -48,7 +48,7 @@ boolean is_pressed(int button){
 }
 
 /* returns true, if the given button pin is pressed and all other buttons are not pressed  */
-boolean is_only_pressed(int button){
+boolean is_only_pressed(uint32_t button){
     return is_pressed(button)
         && ((button == GREEN_BUTTON) || ((button != GREEN_BUTTON) && (!is_pressed(GREEN_BUTTON))))
         && ((button == BLUE_BUTTON) || ((button != BLUE_BUTTON) && (!is_pressed(BLUE_BUTTON))))
@@ -57,7 +57,7 @@ boolean is_only_pressed(int button){
 }
 
 /* returns the button matching the given led_pin color  */
-int get_button_for_led(int led_pin){
+int get_button_for_led(uint32_t led_pin){
     int button_pin;
     switch (led_pin)
     {
@@ -87,7 +87,7 @@ boolean delay_with_any_button_interrupt(uint32_t milliseconds){
 }
 
 /* delay the program for a specific amount of milliseconds and interrupts on a specific button pin press  */
-boolean delay_with_specific_button_interrupt(uint32_t milliseconds, int button){
+boolean delay_with_specific_button_interrupt(uint32_t milliseconds, uint32_t button){
     const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
     volatile uint64_t then = *now + (uint64_t)milliseconds*((uint64_t)RTC_FREQ / (uint64_t)MILLISECONDS_PER_SECOND);
     boolean interrupted = FALSE;
@@ -131,7 +131,7 @@ void reset_game(void){
 
 /* game loop, which should be reapetly called forever  */
 void loop(void){
-    static int pressed_button_pins[MAX_DEMONSTRATION_LED_COUNT];
+    static uint32_t pressed_button_pins[MAX_DEMONSTRATION_LED_COUNT];
     static game_state state = INITIAL;
     switch (state){
         case INITIAL:

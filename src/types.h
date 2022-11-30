@@ -31,10 +31,10 @@ typedef unsigned long long uint64_t;
 #define RTC_FREQ 32768
 
 /* led gpio pins */
-#define GREEN_LED 18
-#define BLUE_LED 21
-#define YELLOW_LED 0
-#define RED_LED 3
+#define GREEN_LED 18U
+#define BLUE_LED 21U
+#define YELLOW_LED 0U
+#define RED_LED 3U
 
 /* numbers diesplayed in the transition phase as binary number on leds (this creates the led patter) */
 #define BINNARY_TRANSITION_NUMBER_1 9
