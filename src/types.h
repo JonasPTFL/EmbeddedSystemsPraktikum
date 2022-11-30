@@ -3,6 +3,9 @@
 
 TYPES_H
 
+typedef unsigned long uint32_t;
+typedef	unsigned int uint_t;
+
 #define REG(P) (*(volatile uint32_t *) (P))
 
 #define GPIO_BASE 0x10012000
@@ -40,9 +43,6 @@ TYPES_H
 
 #define MAX_DEMONSTRATION_LED_COUNT 10
 #define DEMONSTRATION_ON_MILLIS_PRECENTAGE_INCREASE 0.1
-
-typedef unsigned long unsigned_long;
-typedef	unsigned int unsigned_int;
 
 
 typedef enum {

@@ -11,16 +11,16 @@ static boolean is_pressed(int button);
 static boolean is_only_pressed(int button);
 static int get_button_for_led(int led_pin);
 static int led_pin_at_position(int pos);
-static void delay(unsigned_long milliseconds);
-static boolean delay_with_any_button_interrupt(unsigned_long milliseconds);
-static boolean delay_with_specific_button_interrupt(unsigned_long milliseconds, int button);
+static void delay(uint32_t milliseconds);
+static boolean delay_with_any_button_interrupt(uint32_t milliseconds);
+static boolean delay_with_specific_button_interrupt(uint32_t milliseconds, int button);
 static unsigned int nearly_random_number(void);
 
 /* led functions */
 static void all_led_blink_short(void);
 static void enable_led(int led, boolean state);
 static void enabled_all_leds(boolean state);
-static void display_number_binary(unsigned_int number);
+static void display_number_binary(uint_t number);
 
 /* game functions  */
 static boolean game_ready(void);

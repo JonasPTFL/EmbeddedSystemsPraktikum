@@ -41,12 +41,12 @@ void all_led_blink_short(void){
 }
 
 /* displays the given number binary with the 4 leds  */
-void display_number_binary(unsigned_int number){
-    for(unsigned_int i = 0; i < (unsigned_int)LED_COUNT; i++){
+void display_number_binary(uint_t number){
+    for(uint_t i = 0; i < (uint_t)LED_COUNT; i++){
       int led_pin = led_pin_at_position(i);
-      unsigned_int bit_at_position = (unsigned_int)( (unsigned_int) number >> (unsigned_int) ( (unsigned_int)LED_COUNT-i-(unsigned_int)1 ) ) & (unsigned_int)0x01;
+      uint_t bit_at_position = (uint_t)( (uint_t) number >> (uint_t) ( (uint_t)LED_COUNT-i-(uint_t)1 ) ) & (uint_t)0x01;
       boolean led_enabled;
-      if (bit_at_position == (unsigned_int)1){
+      if (bit_at_position == (uint_t)1){
         led_enabled = TRUE;
       } else {
         led_enabled = FALSE;

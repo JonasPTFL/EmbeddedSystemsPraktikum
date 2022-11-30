@@ -2,12 +2,12 @@
 #include "led_control.h"
 #include "types.h"
 #include "functions.h"
-#include <time.h>
+#include "platform.h"
 
 static int demonstration_on_millis = T_LONG;
 static int demonstration_led_count = INITIAL_DEMONSTRATION_LED_COUNT;
 static int level = INITIAL_LEVEL;
-static u_int seed = INITIAL_RAND_SEED;
+static uint_t seed = INITIAL_RAND_SEED;
 
 
 /* sets up the button with the given gpio pin  */
@@ -21,11 +21,11 @@ void setup_button(int gpio_pin){
 
 /* generates a nearly random number from 0 to 3  */
 unsigned int nearly_random_number(void){
-    static u_int lfsr = 0xADEu;
-    u_int bit = (u_int)(((((u_int)lfsr >> (u_int)0) ^ ((u_int)lfsr >> (u_int)2)) ^ ((u_int)lfsr >> (u_int)3)) ^ ((u_int)lfsr >> (u_int)5))  & (u_int)1;
+    static uint_t lfsr = 0xADEu;
+    uint_t bit = (uint_t)(((((uint_t)lfsr >> (uint_t)0) ^ ((uint_t)lfsr >> (uint_t)2)) ^ ((uint_t)lfsr >> (uint_t)3)) ^ ((uint_t)lfsr >> (uint_t)5))  & (uint_t)1;
 
-    lfsr =  ((u_int)lfsr >> (u_int)1) | ((u_int)bit << (u_int)15);
-    return ((lfsr)+seed) % (u_int)4;
+    lfsr =  ((uint_t)lfsr >> (uint_t)1) | ((uint_t)bit << (uint_t)15);
+    return ((lfsr)+seed) % (uint_t)4;
 }
 
 /* returns true, if the given button pin is pressed  */
@@ -63,59 +63,40 @@ int get_button_for_led(int led_pin){
 }
 
 /* delay the program for a specific amount of milliseconds and interrupts on any button press  */
-boolean delay_with_any_button_interrupt(unsigned_long milliseconds){
-    unsigned_long pause;
-    clock_t now;
-    clock_t then;
-
-    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)MILLISECONDS_PER_SECOND)));
-    now = clock();
-    then = now;
+boolean delay_with_any_button_interrupt(uint32_t milliseconds){
+    const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
+    volatile uint64_t then = *now + (uint64_t)milliseconds*((uint64_t)RTC_FREQ / (uint64_t)MILLISECONDS_PER_SECOND);
     boolean interrupted = FALSE;
-    while( (interrupted == FALSE) && (((unsigned_long)(now-then)) < pause)) {
+    while ((interrupted == FALSE) && ((*now) < then)){
         if (is_pressed(GREEN_BUTTON) 
         || is_pressed(BLUE_BUTTON) 
         || is_pressed(YELLOW_BUTTON) 
         || is_pressed(RED_BUTTON)){
             interrupted = TRUE;
         }
-       
-        now = clock();
     }
     return interrupted;
 }
 
 /* delay the program for a specific amount of milliseconds and interrupts on a specific button pin press  */
-boolean delay_with_specific_button_interrupt(unsigned_long milliseconds, int button){
-    unsigned_long pause;
-    clock_t now;
-    clock_t then;
-
-    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)MILLISECONDS_PER_SECOND)));
-    now = clock();
-    then = now;
+boolean delay_with_specific_button_interrupt(uint32_t milliseconds, int button){
+    const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
+    volatile uint64_t then = *now + (uint64_t)milliseconds*((uint64_t)RTC_FREQ / (uint64_t)MILLISECONDS_PER_SECOND);
     boolean interrupted = FALSE;
-    while( (interrupted == FALSE) && ((unsigned_long)(now-then) < pause)) {
-        if (is_pressed(button) == TRUE) {
-            interrupted = TRUE;
-        }
-
-        now = clock();
+    while ((interrupted == FALSE) && ((*now) < then)){
+            if (is_pressed(button) == TRUE) {
+                interrupted = TRUE;
+            }   
     }
     return interrupted;
 }
 
 /* delay the program for a specific amount of milliseconds  */
-void delay(unsigned_long milliseconds){
-    unsigned_long pause;
-    clock_t now;
-    clock_t then;
-
-    pause = (unsigned_long)(milliseconds*((unsigned_long)((unsigned_long)CLOCKS_PER_SEC/(unsigned_long)MILLISECONDS_PER_SECOND)));
-    now = clock();
-    then = now;
-    while(((unsigned_long)(now-then)) < pause) {
-        now = clock();
+void delay(uint32_t milliseconds){
+    const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
+    volatile uint64_t then = *now + (uint64_t)milliseconds*((uint64_t)RTC_FREQ / (uint64_t)MILLISECONDS_PER_SECOND);
+    while ((*now) < then){
+        
     }
 }
 
@@ -153,8 +134,9 @@ void loop(void){
             boolean green_btn_pressed = game_ready();
             if (green_btn_pressed == TRUE){
 
-                if (seed == (u_int)INITIAL_RAND_SEED) {
-                    seed = clock();
+                if (seed == (uint_t)INITIAL_RAND_SEED) {
+                    const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
+                    seed = (uint_t)*now;
                 }
 
                 state = DEMONSTRATION;

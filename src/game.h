@@ -5,7 +5,6 @@ GAME_H
 
 #include "functions.h"
 #include "types.h"
-#include <time.h>
 
 
 /* ready game step  */
