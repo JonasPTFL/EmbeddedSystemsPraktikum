@@ -48,8 +48,8 @@ typedef unsigned long long uint64_t;
 
 /* time length definitions */
 #define T_SHORT 700
-#define T_LONG 1000
-#define T_VERY_LONG 2000
+#define T_LONG 2*(int)T_SHORT
+#define T_VERY_LONG 2*(int)T_LONG
 #define MILLISECONDS_PER_SECOND 1000
 
 
