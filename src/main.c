@@ -2,7 +2,15 @@
 #include "led_control.h"
 #include "types.h"
 #include "functions.h"
-#include "platform.h"
+
+/*
+* I copied some of the preprocessor annotation to obtain the current system time from the platform.h header file and other lib files from
+* the embedded systems git repo workspace. I did not want to include the whole lib, since the code of the lib throws misra warnings and 
+* a only need a small part from the library to fetch the current system time.
+*
+* #include "platform.h" is missing on purpose...
+*/
+
 
 static int demonstration_on_millis = T_LONG;
 static int demonstration_led_count = INITIAL_DEMONSTRATION_LED_COUNT;
