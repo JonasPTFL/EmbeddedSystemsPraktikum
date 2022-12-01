@@ -31,14 +31,13 @@ typedef unsigned long long uint64_t;
 #define RTC_FREQ 32768
 
 /* led gpio pins */
+#define LED_STRIPE 9U
 #define GREEN_LED 18U
 #define BLUE_LED 21U
 #define YELLOW_LED 0U
 #define RED_LED 3U
 
-/* numbers diesplayed in the transition phase as binary number on leds (this creates the led patter) */
-#define BINNARY_TRANSITION_NUMBER_1 9
-#define BINNARY_TRANSITION_NUMBER_2 6
+#define BUZZER 11
 
 /* button gpio pins */
 #define GREEN_BUTTON 19
@@ -47,20 +46,10 @@ typedef unsigned long long uint64_t;
 #define RED_BUTTON 2
 
 /* time length definitions */
-#define T_SHORT 700
-#define T_LONG 2*(int)T_SHORT
-#define T_VERY_LONG 2*(int)T_LONG
 #define MILLISECONDS_PER_SECOND 1000
 
 
 /* general constants */
-#define LED_COUNT 4
-#define LEVEL_COUNT 16
-#define INITIAL_DEMONSTRATION_LED_COUNT 3
-#define INITIAL_LEVEL 1
-#define INITIAL_RAND_SEED 0
-#define MAX_DEMONSTRATION_LED_COUNT 10
-#define DEMONSTRATION_ON_MILLIS_PRECENTAGE_INCREASE 0.1
 
 /* defining own boolean enum struct for better readability */
 typedef enum {
@@ -68,8 +57,5 @@ typedef enum {
 } boolean;
 
 /* game state enum used in state pattern */
-typedef enum {
-    INITIAL, READY, DEMONSTRATION, IMITATION, LOST, TRANSITION, END
-} game_state;
 
 #endif
