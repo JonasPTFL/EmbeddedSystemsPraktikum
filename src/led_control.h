@@ -8,11 +8,11 @@ LED_CONTROL_H
 
 
 /* sets up the given led pin  */
-void setup_led(int gpio_pin){
-	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
-	REG(GPIO_BASE + GPIO_INPUT_EN) &= ~((uint32_t)1 << (uint32_t) gpio_pin);
-	REG(GPIO_BASE + GPIO_OUTPUT_EN) |= ((uint32_t)1 << (uint32_t) gpio_pin);
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << (uint32_t) gpio_pin);
+void setup_led(uint32_t gpio_pin){
+	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << gpio_pin);
+	REG(GPIO_BASE + GPIO_INPUT_EN) &= ~((uint32_t)1 << gpio_pin);
+	REG(GPIO_BASE + GPIO_OUTPUT_EN) |= ((uint32_t)1 << gpio_pin);
+	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << gpio_pin);
 }
 
 /* enables all leds with the given state  */
@@ -24,11 +24,11 @@ void enabled_all_leds(boolean state){
 }
 
 /* enables a pecific led with the given state  */
-void enable_led(int led, boolean state){
+void enable_led(uint32_t led, boolean state){
     if (state == TRUE){
-		  REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << (uint32_t) led);
+		  REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << led);
     } else{
-	    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~((uint32_t)1 << (uint32_t) led);
+	    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << led);
     }
 }
 
@@ -57,8 +57,8 @@ void display_number_binary(uint_t number){
 }
 
 /* returns the led pin on the given position  */
-int led_pin_at_position(int pos){
-  int led_pin;
+uint32_t led_pin_at_position(uint_t pos){
+  uint32_t led_pin;
   switch (pos)
   {
     case 0: led_pin = GREEN_LED; break;

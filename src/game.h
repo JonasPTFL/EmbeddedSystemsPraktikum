@@ -35,10 +35,10 @@ void game_demonstrate_start(void){
 }
 
 /* demonstration game step  */
-void game_demonstration_main(int step_count, int on_milliseconds, int led_pins []){
+void game_demonstration_main(uint_t step_count, uint32_t on_milliseconds, uint32_t led_pins []){
     enabled_all_leds(FALSE);
-    for (int i = 0; i < step_count; i++){
-        int random_led_pin = led_pin_at_position((int)((int)nearly_random_number() % 5));
+    for (uint_t i = 0; i < step_count; i++){
+        uint32_t random_led_pin = led_pin_at_position((int)((int)nearly_random_number() % 5));
         led_pins[i] = random_led_pin;
         enable_led(random_led_pin, TRUE);
         delay(on_milliseconds);
@@ -48,11 +48,11 @@ void game_demonstration_main(int step_count, int on_milliseconds, int led_pins [
 }
 
 /* imitation game step  */
-boolean game_imitation(int step_count, int waiting_time, const int led_pins[]){
+boolean game_imitation(uint_t step_count, uint32_t waiting_time, const uint32_t led_pins[]){
     boolean result = TRUE;
-    for (int i = 0; i < step_count; i++){
+    for (uint_t i = 0; i < step_count; i++){
         boolean button_pressed_in_time = delay_with_any_button_interrupt(waiting_time);
-        int current_led_pin = led_pins[i];
+        uint32_t current_led_pin = led_pins[i];
         
         if (button_pressed_in_time && is_only_pressed(get_button_for_led(current_led_pin))){
             enable_led(current_led_pin, TRUE);
@@ -68,8 +68,8 @@ boolean game_imitation(int step_count, int waiting_time, const int led_pins[]){
 }
 
 /* game lost step  */
-void game_lost(int reached_level){
-    for (int i = 0; i < 5; i++){
+void game_lost(uint_t reached_level){
+    for (int i = 0; i < GAME_LOST_BLINK_COUNT; i++){
         enable_led(RED_LED, TRUE);
         delay(T_SHORT);
         
@@ -78,12 +78,12 @@ void game_lost(int reached_level){
     }
 
     display_number_binary(reached_level);
-    delay(T_VERY_LONG); 
+    delay((uint32_t)T_VERY_LONG); 
 }
 
 /* transition game step  */
 void game_transition(void){
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < GAME_TRANSITION_BLINK_COUNT; i++){
         display_number_binary(BINNARY_TRANSITION_NUMBER_1); 
         delay(T_SHORT);
 
@@ -94,11 +94,11 @@ void game_transition(void){
 }
 
 /* evaluation game step  */
-void game_evaluate_round(int level, int* demonstration_led_count, int* demonstration_on_millis){
-    if ((level <= 4) || ( (level >= 9) && (level <= 12) )){
+void game_evaluate_round(uint_t level, uint_t* demonstration_led_count, uint32_t* demonstration_on_millis){
+    if ((level <= 4U) || ( (level >= 9U) && (level <= 12U) )){
         (*demonstration_led_count)++;
     } else {
-        if((level <= 8) ||  ((level >= 13) && (level <= 16) )){
+        if((level <= 8U) ||  ((level >= 13U) && (level <= 16U) )){
             *demonstration_on_millis -= (*demonstration_on_millis) * DEMONSTRATION_ON_MILLIS_PRECENTAGE_INCREASE;
         }
     }
@@ -106,11 +106,11 @@ void game_evaluate_round(int level, int* demonstration_led_count, int* demonstra
 
 /* ending game step  */
 void game_end(void){
-    for (int i = 1; i <= 4; i++){
+    for (int i = 1; i <= GAME_ENDING_BLINK_COUNT; i++){
         enabled_all_leds(TRUE);
 
         if ((i == 1) || (i == 4)) delay(T_SHORT);
-        else delay(T_LONG);
+        else delay((uint32_t)T_LONG);
 
         enabled_all_leds(FALSE);
         delay(T_SHORT);
