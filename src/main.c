@@ -12,8 +12,8 @@
 */
 
 
-static int demonstration_on_millis = T_LONG;
-static int demonstration_led_count = INITIAL_DEMONSTRATION_LED_COUNT;
+static uint32_t demonstration_on_millis = (uint32_t)T_LONG;
+static uint_t demonstration_led_count = INITIAL_DEMONSTRATION_LED_COUNT;
 static int level = INITIAL_LEVEL;
 static uint_t seed = INITIAL_RAND_SEED;
 
@@ -27,7 +27,13 @@ void setup_button(uint32_t gpio_pin){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << gpio_pin);
 }
 
-/* generates a nearly random number from 0 to 3  */
+/* generates a nearly random number from 0 to 3  
+* this method is a modifier version from the method posted on :
+* stackoverflow.com/a/7603688
+* This posted code snippet is a modifier version of an generation algorithm from the wikipedia article:
+* en.wikipedia.org/wiki/Linear_feedback_shift_register
+* and uses bit shift. I modified the output by adding a seed value to get different values
+* when restarting the device. */
 unsigned int nearly_random_number(void){
     static uint_t lfsr = 0xADEu;
     uint_t bit = (uint_t)((((lfsr >> 0U) ^ (lfsr >> 2U)) ^ (lfsr >> 3U)) ^ (lfsr >> 5U))  & 1U;

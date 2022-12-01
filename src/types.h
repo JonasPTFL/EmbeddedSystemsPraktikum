@@ -41,15 +41,15 @@ typedef unsigned long long uint64_t;
 #define BINNARY_TRANSITION_NUMBER_2 6
 
 /* button gpio pins */
-#define GREEN_BUTTON 19
-#define BLUE_BUTTON 20
-#define YELLOW_BUTTON 1
-#define RED_BUTTON 2
+#define GREEN_BUTTON 19U
+#define BLUE_BUTTON 20U
+#define YELLOW_BUTTON 1U
+#define RED_BUTTON 2U
 
 /* time length definitions */
-#define T_SHORT 700
-#define T_LONG 2*(int)T_SHORT
-#define T_VERY_LONG 2*(int)T_LONG
+#define T_SHORT (uint32_t)700
+#define T_LONG 2*(uint32_t)T_SHORT
+#define T_VERY_LONG 2*(uint32_t)T_LONG
 #define MILLISECONDS_PER_SECOND 1000
 
 
@@ -61,6 +61,9 @@ typedef unsigned long long uint64_t;
 #define INITIAL_RAND_SEED 0
 #define MAX_DEMONSTRATION_LED_COUNT 10
 #define DEMONSTRATION_ON_MILLIS_PRECENTAGE_INCREASE 0.1
+#define GAME_LOST_BLINK_COUNT 5
+#define GAME_TRANSITION_BLINK_COUNT 5
+#define GAME_ENDING_BLINK_COUNT 4
 
 /* defining own boolean enum struct for better readability */
 typedef enum {
