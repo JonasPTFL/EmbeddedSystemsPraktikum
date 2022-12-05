@@ -32,18 +32,8 @@ typedef unsigned long long uint64_t;
 
 /* led gpio pins */
 #define LED_STRIPE 9U
-#define GREEN_LED 18U
-#define BLUE_LED 21U
-#define YELLOW_LED 0U
-#define RED_LED 3U
 
 #define BUZZER 11
-
-/* button gpio pins */
-#define GREEN_BUTTON 19
-#define BLUE_BUTTON 20
-#define YELLOW_BUTTON 1
-#define RED_BUTTON 2
 
 /* time length definitions */
 #define MILLISECONDS_PER_SECOND 1000
