@@ -24,17 +24,21 @@ void delay(uint32_t milliseconds){
 
 /* sets up the program (leds and buttons)  */
 void setup(void){
-
+    setup_buzzer();
 }
 
 /* programm loop, that runs forever  */
 void loop(void){
+    for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
+    
     uint_t tone_frequency = song[note_index];
     float tone_duration = duration[note_index];
 
     play_tone(tone_frequency, tone_duration);
 
-    note_index++;
+        note_index = i;
+    }
+    
 
 }
 
@@ -46,8 +50,17 @@ void setup_buzzer(){
 }
 
 void play_tone(uint_t tone_frequency, float tone_duration){
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (2000 << BUZZER);
-    delay(tone_duration*1000);
+    for (uint_t i = 0; i < tone_duration; i++)
+    {
+        for (uint_t j = 0; j < tone_frequency; j++)
+        { 
+            REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << BUZZER);
+            delay((MILLISECONDS_PER_SECOND/2)/tone_frequency);
+            REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << BUZZER);
+            delay((MILLISECONDS_PER_SECOND/2)/tone_frequency);
+        }
+        delay(1);
+    }
 }
 
 /* main method, which starts the program  */
