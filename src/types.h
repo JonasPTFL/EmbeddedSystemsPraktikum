@@ -32,11 +32,11 @@ typedef unsigned long long uint64_t;
 
 /* led gpio pins */
 #define LED_STRIPE 9U
-
 #define BUZZER 11
 
 /* time length definitions */
 #define MILLISECONDS_PER_SECOND 1000
+#define SONG_DURATION_STEPS 0.5
 
 
 /* general constants */

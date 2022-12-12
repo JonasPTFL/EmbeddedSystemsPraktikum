@@ -11,8 +11,6 @@
 * #include "platform.h" is missing on purpose...
 */
 
-uint_t note_index = 0;
-
 /* delay the program for a specific amount of milliseconds  */
 void delay(uint32_t milliseconds){
     const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
@@ -25,20 +23,20 @@ void delay(uint32_t milliseconds){
 /* sets up the program (leds and buttons)  */
 void setup(void){
     setup_buzzer();
+    setup_led_stripe();
 }
 
 /* programm loop, that runs forever  */
 void loop(void){
+    enabled_led_stripe();
     for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
     
-    uint_t tone_frequency = song[note_index];
-    float tone_duration = duration[note_index];
+        uint_t tone_frequency = song[i];
+        float tone_duration = duration[i];
 
-    play_tone(tone_frequency, tone_duration);
-
-        note_index = i;
+        play_tone(tone_frequency, tone_duration);
     }
-    
+    delay(5000);
 
 }
 
@@ -49,17 +47,40 @@ void setup_buzzer(){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << BUZZER);
 }
 
+void setup_led_stripe(){
+	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << LED_STRIPE);
+	REG(GPIO_BASE + GPIO_INPUT_EN) &= ~((uint32_t)1 << LED_STRIPE);
+	REG(GPIO_BASE + GPIO_OUTPUT_EN) |= ((uint32_t)1 << LED_STRIPE);
+	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << LED_STRIPE);
+}
+
+void delay_tone_frequency(uint32_t f_milliseconds)
+{
+    volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + CLINT_MTIME);
+    volatile uint64_t then = *now + f_milliseconds*(RTC_FREQ / 1000 *12);
+    while (*now < then);
+}
+
+void play_frequency(uint_t tone_frequency){
+    REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << BUZZER);
+    delay_tone_frequency(1000/(tone_frequency*2));
+    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << BUZZER);
+    delay_tone_frequency(1000/(tone_frequency*2));
+}
+
+void enabled_led_stripe(){
+    REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << LED_STRIPE);
+    delay_tone_frequency(2);
+    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << LED_STRIPE);
+}
+
 void play_tone(uint_t tone_frequency, float tone_duration){
-    for (uint_t i = 0; i < tone_duration; i++)
+    for (double i = 0; i < tone_duration; i++)
     {
         for (uint_t j = 0; j < tone_frequency; j++)
-        { 
-            REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << BUZZER);
-            delay((MILLISECONDS_PER_SECOND/2)/tone_frequency);
-            REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << BUZZER);
-            delay((MILLISECONDS_PER_SECOND/2)/tone_frequency);
+        {   
+            play_frequency(tone_frequency);
         }
-        delay(1);
     }
 }
 
@@ -68,8 +89,14 @@ int main(void){
 
     setup();
 
-    while(1){
+    asm(
+        ""
+        ""
+    );
+
+    while(TRUE){
         loop();
     }
 }
+
 

@@ -9,6 +9,8 @@ FUNCTIONS_H
 static void setup(void);
 static void loop(void);
 static void setup_buzzer(void);
+static void setup_led_stripe(void);
+static void enable_led_stripe(void);
 void play_tone(uint_t tone_frequency, float tone_duration);
 
 #endif
