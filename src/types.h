@@ -25,6 +25,9 @@ typedef unsigned long long uint64_t;
 #define GPIO_INPUT_VAL 0x0
 #define GPIO_PUE 0x10
 
+/* i2c sifive */
+#define I2C_SL_ADDR 0x1d
+
 /* time measurement */
 #define CLINT_CTRL_ADDR 0x02000000UL
 #define CLINT_MTIME 0xBFF8
@@ -37,6 +40,7 @@ typedef unsigned long long uint64_t;
 /* time length definitions */
 #define MILLISECONDS_PER_SECOND 1000
 #define SONG_DURATION_STEPS 0.5
+#define SIMULATOR_MILLIS_MULTIPLIER 13.25
 
 
 /* general constants */
