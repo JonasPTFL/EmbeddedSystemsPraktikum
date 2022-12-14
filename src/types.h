@@ -43,7 +43,18 @@ typedef unsigned long long uint64_t;
 #define SIMULATOR_MILLIS_MULTIPLIER 13.25
 
 
+typedef struct color {
+    uint_t green;
+    uint_t red;
+    uint_t blue;
+} color_t;
+
 /* general constants */
+
+
+#define RED   { .green = 0x00, .red = 0xFF, .blue = 0x00 } 
+#define GREEN { .green = 0xFF, .red = 0x00, .blue = 0x00 }
+#define BLUE  { .green = 0x00, .red = 0x00, .blue = 0xFF }
 
 /* defining own boolean enum struct for better readability */
 typedef enum {
