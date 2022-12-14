@@ -19,4 +19,7 @@ void play_frequency(uint32_t milliseconds, uint_t tone_frequency);
 static void setup_led_stripe(void);
 static void enable_led_stripe(void);
 
+
+static void i2c_init();
+static uint_t i2c_readReg(const uint_t f_addr);
 #endif

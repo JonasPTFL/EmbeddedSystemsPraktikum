@@ -18,18 +18,23 @@ void delay(double milliseconds){
 void setup(void){
     setup_buzzer();
     setup_led_stripe();
+    i2c_init();
 }
 
 /* programm loop, that runs forever  */
 void loop(void){
-    for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
-    
-        uint_t tone_frequency = song[i];
-        float tone_duration = duration[i];
 
-        play_tone(tone_frequency, tone_duration);
+    uint_t brightness = read_light_sensor();
+    if(brightness > 100){
+        for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
+        
+            uint_t tone_frequency = song[i];
+            float tone_duration = duration[i];
+
+            //play_tone(tone_frequency, tone_duration);
+        }
+        delay(5000);
     }
-    delay(5000);
 
 }
 
