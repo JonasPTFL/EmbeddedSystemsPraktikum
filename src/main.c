@@ -6,9 +6,9 @@
 #include "buzzer.h"
 
 /* delay the program for a specific amount of milliseconds  */
-void delay(uint32_t milliseconds){
+void delay(double milliseconds){
     const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
-    volatile uint64_t then = *now + (uint64_t)milliseconds*((uint64_t)RTC_FREQ / (uint64_t)MILLISECONDS_PER_SECOND);
+    volatile uint64_t then = *now + ((double)milliseconds)*(((double)RTC_FREQ) / ((double)MILLISECONDS_PER_SECOND));
     while ((*now) < then){
         
     }

@@ -8,13 +8,12 @@ FUNCTIONS_H
 /* main functions  */
 static void setup(void);
 static void loop(void);
-static void delay(uint32_t milliseconds);
+static void delay(double milliseconds);
 
 /* buzzer */
 static void setup_buzzer(void);
 static void play_tone(uint_t tone_frequency, float tone_duration);
-static void play_frequency(uint_t tone_frequency);
-static void delay_tone_frequency(uint32_t f_milliseconds);
+void play_frequency(uint32_t milliseconds, uint_t tone_frequency);
 
 /* led stripe */
 static void setup_led_stripe(void);
