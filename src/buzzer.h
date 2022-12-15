@@ -19,9 +19,9 @@ void play_frequency(uint32_t milliseconds, uint_t tone_frequency){
     
     while ((*now) < then){
         REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << BUZZER);
-        delay(((double)1000)/(((double)tone_frequency)*((double)2))); // *SIMULATOR_MILLIS_MULTIPLIER
+        delay(((double)1000)/(((double)tone_frequency)*((double)2))*SIMULATOR_MILLIS_MULTIPLIER); // *SIMULATOR_MILLIS_MULTIPLIER
         REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << BUZZER);
-        delay(((double)1000)/(((double)tone_frequency)*((double)2))); // *SIMULATOR_MILLIS_MULTIPLIER
+        delay(((double)1000)/(((double)tone_frequency)*((double)2))*SIMULATOR_MILLIS_MULTIPLIER); // *SIMULATOR_MILLIS_MULTIPLIER
     }
 }
 

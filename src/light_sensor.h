@@ -61,6 +61,7 @@ uint_t i2c_read(uint_t f_addr)
 	return (uint_t)(rx & 0xff);
 }
 
+// TODO umschrieben wichtig!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void i2c_transmit(uint32_t transmit, uint32_t command)
 {
     I2C_REG(I2C0_TRANSMIT) = transmit;

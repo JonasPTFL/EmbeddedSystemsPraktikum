@@ -38,9 +38,9 @@ typedef unsigned long long uint64_t;
 #define BUZZER 11
 
 /* time length definitions */
+#define SIMULATOR_MILLIS_MULTIPLIER 13.25
 #define MILLISECONDS_PER_SECOND 1000
 #define SONG_DURATION_STEPS 0.5
-#define SIMULATOR_MILLIS_MULTIPLIER 13.25
 
 
 typedef struct color {

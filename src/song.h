@@ -1,6 +1,8 @@
 #ifndef SONG_H
 #define SONG_H
 
+SONG_H
+
 #define NOTE_C4  262
 #define NOTE_D4  294
 #define NOTE_E4  330

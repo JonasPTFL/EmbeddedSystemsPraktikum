@@ -28,12 +28,16 @@ void loop(void){
     if(brightness > 110){
         for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
         
+            brightness = read_light_sensor();
+            
             uint_t tone_frequency = song[i];
             float tone_duration = duration[i];
 
-            //play_tone(tone_frequency, tone_duration);
+            if(brightness <= 110){
+                return;
+            }
+            play_tone(tone_frequency, tone_duration);
         }
-        //delay(5000);
     }
 
 }
