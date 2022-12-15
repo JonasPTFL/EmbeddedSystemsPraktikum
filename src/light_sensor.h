@@ -22,47 +22,7 @@ void i2c_init()
 
 }
 
-
-uint_t read_light_sensor(){
-	// ignore first read
-	i2c_readReg(0x9E);
-
-	uint_t brightness = i2c_readReg(0x9E); 
-	return brightness;
-}
-
-void i2c_writeReg(const uint8_t f_addr, const uint8_t f_data)
-{
-	// write address
-	I2C_REG(I2C0_TRANSMIT) = (I2C_SL_ADDR << 1);
-	I2C_REG(I2C0_COMMAND) = (1 << I2C_CMD_STA) | (1 << I2C_CMD_WR);
-
-	// wait
-	while (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP));
-	if ( (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_RXACK)))
-		return;
-
-	// write reg add
-	I2C_REG(I2C0_TRANSMIT) = f_addr;
-	I2C_REG(I2C0_COMMAND) = (1 << I2C_CMD_WR);
-
-	// wait
-	while (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP));
-	if ( (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_RXACK)))
-		return;
-
-	// write data
-	I2C_REG(I2C0_TRANSMIT) = f_data;
-	I2C_REG(I2C0_COMMAND) = (1 << I2C_CMD_WR) | (1 << I2C_CMD_STO);
-
-	// wait
-	while (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP));
-	if ( (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_RXACK)))
-		return;
-
-}
-
-uint_t i2c_readReg(const uint_t f_addr)
+uint_t i2c_read(uint_t f_addr)
 {
 	// write address
 	I2C_REG(I2C0_TRANSMIT) = (I2C_SL_ADDR << 1);
@@ -99,6 +59,34 @@ uint_t i2c_readReg(const uint_t f_addr)
 	rx = I2C_REG(I2C0_RECEIVE);
 
 	return (uint_t)(rx & 0xff);
+}
+
+void i2c_transmit(uint32_t transmit, uint32_t command)
+{
+    I2C_REG(I2C0_TRANSMIT) = transmit;
+    I2C_REG(I2C0_COMMAND)  = command;
+    
+    while ((I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP)) > 0U) {
+    }
+}
+
+uint8_t pcf8591_read(const uint_t f_address, const uint_t channel)
+{
+    i2c_transmit(0, (1 << I2C_CMD_STA));
+    i2c_transmit(f_address | 0, (1 << I2C_CMD_WR));
+    i2c_transmit(channel, (1 << I2C_CMD_WR));
+    i2c_transmit(f_address | 1, (1 << I2C_CMD_STA) | (1 << I2C_CMD_WR));
+    i2c_transmit(0, (1 << I2C_CMD_RD));
+    i2c_transmit(0, (1 << I2C_CMD_RD));
+    uint32_t result = I2C_REG(I2C0_RECEIVE);
+    i2c_transmit(0, (1 << I2C_CMD_ACK));
+
+    return result;
+}
+
+uint_t read_light_sensor(){
+	uint_t brightness = pcf8591_read(0x90, 0); 
+	return brightness;
 }
 
 #endif

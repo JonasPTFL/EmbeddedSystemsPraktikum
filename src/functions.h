@@ -21,5 +21,5 @@ static void enable_led_stripe(void);
 
 
 static void i2c_init();
-static uint_t i2c_readReg(const uint_t f_addr);
+uint_t read_light_sensor();
 #endif

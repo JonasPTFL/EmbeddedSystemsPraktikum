@@ -25,7 +25,7 @@ void setup(void){
 void loop(void){
 
     uint_t brightness = read_light_sensor();
-    if(brightness > 100){
+    if(brightness > 110){
         for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
         
             uint_t tone_frequency = song[i];
@@ -33,7 +33,7 @@ void loop(void){
 
             //play_tone(tone_frequency, tone_duration);
         }
-        delay(5000);
+        //delay(5000);
     }
 
 }
