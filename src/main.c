@@ -37,6 +37,7 @@ void loop(void){
                 return;
             }
             play_tone(tone_frequency, tone_duration);
+            show_next_led_stripe_colors();
         }
     }
 
@@ -52,7 +53,6 @@ int main(void){
         ""
         ""
     );
-    enabled_led_stripe();
 
     while(TRUE){
         loop();

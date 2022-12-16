@@ -5,7 +5,6 @@
 #include "functions.h"
 
 LED_STRIPE_H
-
 color_t colors[] = { RED, GREEN, BLUE, RED, GREEN, BLUE, RED, GREEN, BLUE, RED };
 uint_t color_index = 0;
 
@@ -17,15 +16,9 @@ void setup_led_stripe(){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << LED_STRIPE);
 }
 
-void show_next_led_stripe_colors(){
-    if(color_index > 10){
-        color_index = 0;
-    } 
-    ws2812b_write((1 << LED_STRIPE), colors[color_index++], 10 * sizeof(color_t));
-}
-
-void ws2812b_write(uint32_t pin_mask, const uint8_t *data, uint8_t length)
+void ws2812b_write(const uint8_t *data, uint8_t length)
 {
+    uint_t pin = (1 << LED_STRIPE);
     uint32_t state = REG(GPIO_BASE + GPIO_OUTPUT_VAL);
 
     // HERE BE DRAGONS
@@ -73,12 +66,21 @@ void ws2812b_write(uint32_t pin_mask, const uint8_t *data, uint8_t length)
                  "sw   %[low],  0(%[output])\n" // reset
                  :
                  : [output] "r" (GPIO_CTRL_ADDR + GPIO_OUTPUT_VAL),
-                   [high]   "r" (state |  pin_mask),
-                   [low]    "r" (state & ~pin_mask),
+                   [high]   "r" (state |  pin),
+                   [low]    "r" (state & ~pin),
                    [data]   "r" (data),
                    [length] "r" (length)
     );
 }
+
+void show_next_led_stripe_colors(){
+    color_t *current_colors = colors + color_index;
+    ws2812b_write((const uint8_t *)current_colors, 10);
+    if (--color_index < 0) {
+        color_index = START_COLOR;
+    }
+}
+
 
 
 

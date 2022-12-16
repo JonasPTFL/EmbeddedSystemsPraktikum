@@ -55,6 +55,7 @@ typedef struct color {
 #define RED   { .green = 0x00, .red = 0xFF, .blue = 0x00 } 
 #define GREEN { .green = 0xFF, .red = 0x00, .blue = 0x00 }
 #define BLUE  { .green = 0x00, .red = 0x00, .blue = 0xFF }
+#define START_COLOR 2
 
 /* defining own boolean enum struct for better readability */
 typedef enum {
