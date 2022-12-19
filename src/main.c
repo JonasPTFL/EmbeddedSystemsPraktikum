@@ -37,7 +37,7 @@ void loop(void){
                 return;
             }
             play_tone(tone_frequency, tone_duration);
-            show_next_led_stripe_colors();
+            //show_next_led_stripe_colors();
         }
     }
 

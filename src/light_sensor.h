@@ -22,71 +22,68 @@ void i2c_init()
 
 }
 
-uint_t i2c_read(uint_t f_addr)
-{
-	// write address
-	I2C_REG(I2C0_TRANSMIT) = (I2C_SL_ADDR << 1);
-	I2C_REG(I2C0_COMMAND) = (1 << I2C_CMD_STA) | (1 << I2C_CMD_WR);
-
-	// wait
-	while (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP));
-	if ( (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_RXACK)))
-		return 0;
-
-	// write reg addr
-	I2C_REG(I2C0_TRANSMIT) = f_addr;
-	I2C_REG(I2C0_COMMAND) = (1 << I2C_CMD_WR) | (1 << I2C_CMD_STO);
-
-	// wait
-	while (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP));
-	if ( (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_RXACK)))
-		return 0;
-
-	// send read request
-	I2C_REG(I2C0_TRANSMIT) = (I2C_SL_ADDR << 1) | 0x1;
-	I2C_REG(I2C0_COMMAND) = (1 << I2C_CMD_STA) | (1 << I2C_CMD_WR);
-
-	// wait
-	while (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP));
-
-	// read, ack and end
-	I2C_REG(I2C0_COMMAND) = (1 << I2C_CMD_RD ) | ( 1 << I2C_CMD_ACK) | (1 << I2C_CMD_STO);
-
-	// wait
-	while (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP));
-
-	uint_t rx = 0;
-	rx = I2C_REG(I2C0_RECEIVE);
-
-	return (uint_t)(rx & 0xff);
-}
-
-// TODO umschrieben wichtig!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-void i2c_transmit(uint32_t transmit, uint32_t command)
-{
-    I2C_REG(I2C0_TRANSMIT) = transmit;
-    I2C_REG(I2C0_COMMAND)  = command;
-    
+void i2c_wait_response(){
+	// no operation loop until 
     while ((I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_TIP)) > 0U) {
     }
 }
 
-uint8_t pcf8591_read(const uint_t f_address, const uint_t channel)
+uint_t i2c_read(uint_t i2c_address, uint_t analog_channel)
 {
-    i2c_transmit(0, (1 << I2C_CMD_STA));
-    i2c_transmit(f_address | 0, (1 << I2C_CMD_WR));
-    i2c_transmit(channel, (1 << I2C_CMD_WR));
-    i2c_transmit(f_address | 1, (1 << I2C_CMD_STA) | (1 << I2C_CMD_WR));
-    i2c_transmit(0, (1 << I2C_CMD_RD));
-    i2c_transmit(0, (1 << I2C_CMD_RD));
-    uint32_t result = I2C_REG(I2C0_RECEIVE);
-    i2c_transmit(0, (1 << I2C_CMD_ACK));
+	// initialize the read process
+	I2C_REG(I2C0_TRANSMIT) = 0;
+    I2C_REG(I2C0_COMMAND)  = (1 << I2C_CMD_STA);
+    
+	i2c_wait_response();
+	if ( (I2C_REG(I2C0_STATUS) & (1 << I2C_STAT_RXACK)))
+	return 0;
 
-    return result;
+	// enabled write mode for reading 
+	I2C_REG(I2C0_TRANSMIT) = i2c_address | 0x0;
+    I2C_REG(I2C0_COMMAND)  = (1 << I2C_CMD_WR);
+    
+	i2c_wait_response();
+
+	// write the control byte into the channel while in write mode 
+	I2C_REG(I2C0_TRANSMIT) = analog_channel;
+    I2C_REG(I2C0_COMMAND)  = (1 << I2C_CMD_WR);
+    
+	i2c_wait_response();
+
+	// send read request to i2c address
+    I2C_REG(I2C0_TRANSMIT) = i2c_address | 0x1;
+    I2C_REG(I2C0_COMMAND)  = (1 << I2C_CMD_STA) | (1 << I2C_CMD_WR);
+    
+	i2c_wait_response();
+
+	// read and skip the first read byte, because the real data is 
+	// contained in secod byte as described in the data sheet 
+    I2C_REG(I2C0_TRANSMIT) = 0;
+    I2C_REG(I2C0_COMMAND)  = (1 << I2C_CMD_RD);
+    
+	i2c_wait_response();
+
+	// read the light sensor data byte, after skipping the first byte
+    I2C_REG(I2C0_TRANSMIT) = 0;
+    I2C_REG(I2C0_COMMAND)  = (1 << I2C_CMD_RD);
+    
+	i2c_wait_response();
+
+    uint_t sensor_data = I2C_REG(I2C0_RECEIVE);
+
+	// send acknowledge to the sensor and finish read process
+    I2C_REG(I2C0_TRANSMIT) = 0;
+    I2C_REG(I2C0_COMMAND)  = (1 << I2C_CMD_ACK);
+    
+	i2c_wait_response();
+
+    return sensor_data;
 }
 
 uint_t read_light_sensor(){
-	uint_t brightness = pcf8591_read(0x90, 0); 
+	// read data from analog pin 0 and i2c address 0x90 (144)
+	// as described in the data sheet of the sensor
+	uint_t brightness = i2c_read(0x90, 0); 
 	return brightness;
 }
 
