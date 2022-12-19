@@ -20,6 +20,6 @@ static void setup_led_stripe(void);
 static void show_next_led_stripe_colors(void);
 
 
-static void i2c_init();
-static uint_t read_light_sensor();
+static void i2c_init(void);
+static uint_t read_light_sensor(void);
 #endif

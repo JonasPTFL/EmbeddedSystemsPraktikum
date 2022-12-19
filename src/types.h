@@ -23,10 +23,6 @@ typedef unsigned long long uint64_t;
 #define GPIO_OUTPUT_VAL 0xc
 #define GPIO_IOF_EN 0x38
 #define GPIO_INPUT_VAL 0x0
-#define GPIO_PUE 0x10
-
-/* i2c sifive */
-#define I2C_SL_ADDR 0x1d
 
 /* time measurement */
 #define CLINT_CTRL_ADDR 0x02000000UL
@@ -40,7 +36,6 @@ typedef unsigned long long uint64_t;
 /* time length definitions */
 #define SIMULATOR_MILLIS_MULTIPLIER 13.25
 #define MILLISECONDS_PER_SECOND 1000
-#define SONG_DURATION_STEPS 0.5
 
 
 typedef struct color {
@@ -56,11 +51,6 @@ typedef struct color {
 #define GREEN { .green = 0xFF, .red = 0x00, .blue = 0x00 }
 #define BLUE  { .green = 0x00, .red = 0x00, .blue = 0xFF }
 #define START_COLOR 2
-
-/* defining own boolean enum struct for better readability */
-typedef enum {
-    FALSE, TRUE
-} boolean;
 
 /* game state enum used in state pattern */
 
