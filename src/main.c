@@ -1,4 +1,3 @@
-#include "led_control.h"
 #include "functions.h"
 #include "song.h"
 #include "light_sensor.h"
