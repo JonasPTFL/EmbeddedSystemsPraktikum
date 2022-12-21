@@ -14,14 +14,13 @@ void setup_led_stripe(void){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << LED_STRIPE);
 }
 
-static void ws2812b_write(uint_t *data, uint_t length)
+static void enable_led_stripe(uint_t *color_data, uint_t data_length)
 {
-    uint_t * current_colors = data;
-    uint_t current_length = length;
+    uint_t * current_colors = color_data;
+    uint_t current_length = data_length;
     uint_t pin = (1U << LED_STRIPE);
-    uint_t state = REG(GPIO_BASE + GPIO_OUTPUT_VAL);
+    uint_t reg = REG(GPIO_BASE + GPIO_OUTPUT_VAL);
 
-    // HERE BE DRAGONS
     asm volatile(
                  "sw   %[low],  0(%[output])\n" // reset
              "byte_loop:\n"
@@ -66,8 +65,8 @@ static void ws2812b_write(uint_t *data, uint_t length)
                  "sw   %[low],  0(%[output])\n" // reset
                  :
                  : [output] "r" (GPIO_CTRL_ADDR + GPIO_OUTPUT_VAL),
-                   [high]   "r" (state |  pin),
-                   [low]    "r" (state & ~pin),
+                   [high]   "r" (reg |  pin),
+                   [low]    "r" (reg & ~pin),
                    [current_colors]   "r" (current_colors),
                    [current_length] "r" (current_length)
     );
@@ -75,11 +74,19 @@ static void ws2812b_write(uint_t *data, uint_t length)
 
 void show_next_led_stripe_colors(void){
     static int color_index = 0;
-    static color_t colors[] = { RED, GREEN, BLUE, RED, GREEN, BLUE, RED, GREEN, BLUE, RED };
-    color_t *current_colors = colors + color_index;
-    ws2812b_write((uint_t *)current_colors, 10);
-    if (--color_index < 0) {
-        color_index = START_COLOR;
+
+    const color red = {0, 255, 0};
+    const color green = {255, 0, 0};
+    const color blue = {0, 0, 255};
+
+    static color colors[] = { red, green, blue, red, green, blue, red, green, blue, red };
+    color *current_colors = colors + color_index;
+    enable_led_stripe((uint_t *)current_colors, 10);
+    
+    color_index++;
+    
+    if (color_index > 2) {
+        color_index = 0;
     }
 }
 

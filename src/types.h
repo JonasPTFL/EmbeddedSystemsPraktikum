@@ -39,18 +39,12 @@ typedef unsigned long long uint64_t;
 
 
 typedef struct color {
-    uint_t green;
-    uint_t red;
-    uint_t blue;
-} color_t;
+    uint_t g;
+    uint_t r;
+    uint_t b;
+} color;
 
 /* general constants */
-
-
-#define RED   { .green = 0x00, .red = 0xFF, .blue = 0x00 } 
-#define GREEN { .green = 0xFF, .red = 0x00, .blue = 0x00 }
-#define BLUE  { .green = 0x00, .red = 0x00, .blue = 0xFF }
-#define START_COLOR 2
 
 /* game state enum used in state pattern */
 
