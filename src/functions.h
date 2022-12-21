@@ -18,6 +18,7 @@ static void play_frequency(uint32_t milliseconds, uint_t tone_frequency);
 /* led stripe */
 static void setup_led_stripe(void);
 static void show_next_led_stripe_colors(void);
+static void disable_led_stripe(void);
 
 
 static void i2c_init(void);

@@ -24,8 +24,8 @@ void setup(void){
 void loop(void){
 
     uint_t brightness = read_light_sensor();
-    if(brightness > 110){
-        show_next_led_stripe_colors();
+    delay(750);
+    if(brightness > 180){
         for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
         
             brightness = read_light_sensor();
@@ -34,8 +34,10 @@ void loop(void){
             float tone_duration = duration[i];
 
             if(brightness > 110){
+                show_next_led_stripe_colors();
                 play_tone(tone_frequency, tone_duration);
             } else {
+                disable_led_stripe();
                 break;
             }
         }
