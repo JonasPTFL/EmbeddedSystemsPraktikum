@@ -34,7 +34,6 @@ typedef unsigned long long uint64_t;
 #define BUZZER 11
 
 /* time length definitions */
-#define SIMULATOR_MILLIS_MULTIPLIER 13.25
 #define MILLISECONDS_PER_SECOND 1000
 
 
@@ -43,9 +42,5 @@ typedef struct color {
     uint_t r;
     uint_t b;
 } color;
-
-/* general constants */
-
-/* game state enum used in state pattern */
 
 #endif

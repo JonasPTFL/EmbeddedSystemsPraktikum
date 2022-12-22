@@ -22,12 +22,12 @@ static void enable_led_stripe(uint_t *color_data)
 
 
     asm volatile(
-                "li t0, 30\n" // byte iterator counter
+                "li t0, 30\n" // set byte iterator to 3 bytes * 10 LEDs (30)
                 "lb t2, (%[current_colors])\n" // load byte in t2
                 "j startloop\n"
                 "byteloop:\n"
-                    "addi t0, t0, -1\n"
-                    "addi %[current_colors], %[current_colors], 1\n" // increase pointer to next elem // TODO low high proceduren mit zeiten anpassen, sonst funktionsfähig?!
+                    "addi t0, t0, -1\n" // decrease byte iterator
+                    "addi %[current_colors], %[current_colors], 1\n" // increase pointer to next elem
                     "startloop:\n"
                         "li t4, 8\n" // bit iterator counter
                         "li t1, 0x80\n" // load a binary mask to filter only relevant bit
@@ -36,29 +36,29 @@ static void enable_led_stripe(uint_t *color_data)
                     "and  t3, t1, t2\n" // apply mask and store mask result in t3
                     "beqz t3, writelow\n" // jump to low procedure if bit is 0
                  "writehigh:\n" // write high output
-                    "beqz t0, endloop\n"
+                    "beqz t0, endloop\n" // jumpt to end if byte iterator is 0
                     "srli t1, t1, 1\n" // right shift mask to check next bit
                     "lb t2, (%[current_colors])\n" // load byte in t2
                     "nop\n"
                     "nop\n"
-                    "addi t4, t4, -1\n"
-                    "sw %[low], 0(%[output])\n"  // -------------------------------------------
-                    "beqz t4, byteloop\n"
+                    "addi t4, t4, -1\n" // decrement bit iterator
+                    "sw %[low], 0(%[output])\n" // write reg low 
+                    "beqz t4, byteloop\n" // jump to loop new byte, if all bits are processed
                     "nop\n"
                     "j bitloop\n"
                  "writelow:\n" // write low output
-                    "addi t4, t4, -1\n"
-                    "beqz t4, byteloop\n"
-                    "sw %[low], 0(%[output])\n" // -------------------------------------------
+                    "addi t4, t4, -1\n" // decrement bit iterator
+                    "beqz t4, byteloop\n" // jump to loop new byte, if all bits are processed
+                    "sw %[low], 0(%[output])\n" // decrement bit iterator
                     "nop\n"
-                    "beqz t0, endloop\n"
+                    "beqz t0, endloop\n" // jumpt to end if byte iterator is 0
                     "lb t2, (%[current_colors])\n" // load byte in t2
                     "srli t1, t1, 1\n" // right shift mask to check next bit
                     "nop\n"
                     "j bitloop\n"
                 "endloop:\n"
                  "sw   %[high], 0(%[output])\n"
-                 "sw   %[low],  0(%[output])\n" // reset
+                 "sw   %[low],  0(%[output])\n" // set low for reset 
                  :
                  : [output] "r" (GPIO_CTRL_ADDR + GPIO_OUTPUT_VAL),
                    [high]   "r" (reg |  pin),
@@ -71,10 +71,10 @@ void disable_led_stripe(void){
     uint_t pin = (1U << LED_STRIPE);
     uint_t reg = REG(GPIO_BASE + GPIO_OUTPUT_VAL);
     asm volatile(
-        "li t0, 240\n"
+        "li t0, 240\n" // loop through all 24 bits of the 10 leds (240 times) and set each color to black
         "low:\n"
         "beqz t0, end\n"
-        "sw %[high], (%[output])\n" // low 0
+        "sw %[high], (%[output])\n"
         "nop\n"
         "nop\n"
         "nop\n"
