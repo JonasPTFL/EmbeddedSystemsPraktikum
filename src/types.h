@@ -35,6 +35,7 @@ typedef unsigned long long uint64_t;
 
 /* time length definitions */
 #define MILLISECONDS_PER_SECOND 1000
+#define BRIGTHNESS_CHANGE_VALUE 110U
 
 
 typedef struct color {
