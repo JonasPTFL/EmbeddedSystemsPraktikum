@@ -23,16 +23,17 @@ static void enable_led_stripe(uint_t *color_data)
 
     asm volatile(
                 "li t0, 30\n" // byte iterator counter
-                "li t2, 0\n" // byte iterator counter
+                "lb t2, (%[current_colors])\n" // load byte in t2
+                "j startloop\n"
                 "byteloop:\n"
                     "addi t0, t0, -1\n"
                     "addi %[current_colors], %[current_colors], 1\n" // increase pointer to next elem // TODO low high proceduren mit zeiten anpassen, sonst funktionsfähig?!
-                    "li t4, 8\n" // bit iterator counter
-                    "li t1, 0x80\n" // load a binary mask to filter only relevant bit
+                    "startloop:\n"
+                        "li t4, 8\n" // bit iterator counter
+                        "li t1, 0x80\n" // load a binary mask to filter only relevant bit
                 "bitloop:\n"
-                    "and  t3, t1, t2\n" // apply mask and store mask result in t3
-                    "beqz t4, byteloop\n"
                     "sw %[high], (%[output])\n" // begin first high output
+                    "and  t3, t1, t2\n" // apply mask and store mask result in t3
                     "beqz t3, writelow\n" // jump to low procedure if bit is 0
                  "writehigh:\n" // write high output
                     "beqz t0, endloop\n"
@@ -40,18 +41,17 @@ static void enable_led_stripe(uint_t *color_data)
                     "lb t2, (%[current_colors])\n" // load byte in t2
                     "nop\n"
                     "nop\n"
-                    "nop\n"
-                    //"nop\n"
-                    //"nop\n"
                     "addi t4, t4, -1\n"
-                    "sw %[low], (%[output])\n"
+                    "sw %[low], (%[output])\n"  // -------------------------------------------
+                    "beqz t4, byteloop\n"
+                    "nop\n"
                     "j bitloop\n"
                  "writelow:\n" // write low output
-                    "beqz t0, endloop\n"
                     "addi t4, t4, -1\n"
-                    "sw %[low], (%[output])\n"
+                    "beqz t4, byteloop\n"
+                    "sw %[low], (%[output])\n" // -------------------------------------------
                     "nop\n"
-                    "nop\n"
+                    "beqz t0, endloop\n"
                     "lb t2, (%[current_colors])\n" // load byte in t2
                     "srli t1, t1, 1\n" // right shift mask to check next bit
                     "nop\n"
