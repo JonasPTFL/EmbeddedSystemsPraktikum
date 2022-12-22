@@ -32,7 +32,7 @@ static void enable_led_stripe(uint_t *color_data)
                         "li t4, 8\n" // bit iterator counter
                         "li t1, 0x80\n" // load a binary mask to filter only relevant bit
                 "bitloop:\n"
-                    "sw %[high], (%[output])\n" // begin first high output
+                    "sw %[high], 0(%[output])\n" // begin first high output
                     "and  t3, t1, t2\n" // apply mask and store mask result in t3
                     "beqz t3, writelow\n" // jump to low procedure if bit is 0
                  "writehigh:\n" // write high output
@@ -42,14 +42,14 @@ static void enable_led_stripe(uint_t *color_data)
                     "nop\n"
                     "nop\n"
                     "addi t4, t4, -1\n"
-                    "sw %[low], (%[output])\n"  // -------------------------------------------
+                    "sw %[low], 0(%[output])\n"  // -------------------------------------------
                     "beqz t4, byteloop\n"
                     "nop\n"
                     "j bitloop\n"
                  "writelow:\n" // write low output
                     "addi t4, t4, -1\n"
                     "beqz t4, byteloop\n"
-                    "sw %[low], (%[output])\n" // -------------------------------------------
+                    "sw %[low], 0(%[output])\n" // -------------------------------------------
                     "nop\n"
                     "beqz t0, endloop\n"
                     "lb t2, (%[current_colors])\n" // load byte in t2
@@ -68,8 +68,36 @@ static void enable_led_stripe(uint_t *color_data)
 }
 
 void disable_led_stripe(void){
-    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << LED_STRIPE);
-    delay(500);
+    uint_t pin = (1U << LED_STRIPE);
+    uint_t reg = REG(GPIO_BASE + GPIO_OUTPUT_VAL);
+    asm volatile(
+        "li t0, 240\n"
+        "low:\n"
+        "beqz t0, end\n"
+        "sw %[high], (%[output])\n" // low 0
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "sw %[low], (%[output])\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"
+        "nop\n"    
+        "addi t0, t0, -1\n"
+        "j low\n"
+        "end:\n"
+        "nop\n"
+        :
+        : [output] "r" (GPIO_CTRL_ADDR + GPIO_OUTPUT_VAL),
+        [high]   "r" (reg |  pin),
+        [low]    "r" (reg & ~pin)
+    );
 }
 
 void show_next_led_stripe_colors(void){
@@ -83,7 +111,7 @@ void show_next_led_stripe_colors(void){
     color *current_colors = colors + color_index;
     enable_led_stripe((uint_t *)current_colors);
     
-    //color_index++;
+    color_index++;
     
     if (color_index > 2) {
         color_index = 0;
