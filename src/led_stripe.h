@@ -22,45 +22,38 @@ static void enable_led_stripe(uint_t *color_data)
 
 
     asm volatile(
-                "li t0, 10\n" // iterator counter
+                "li t0, 30\n" // byte iterator counter
                 "byteloop:\n"
-                    "beqz t0, endloop\n"
-                    "li t1, 0x80\n" // load a binary mask to filter only relevant bit
-                    "lb t2, (%[current_colors])\n" // load byte in t2
-                "bitloop:\n"
-                    "and  t3, t1, t2\n" // apply mask and store mask result in t3
-                    "srli t1, t1, 1\n" // right shift mask to check next bit
-                    "sw %[high], (%[output])\n" // begin first high output
-                    "beqz t2, writelow\n" // jump to low procedure if bit is 0
-                 "writehigh:\n" // write high output
+                    "addi t0, t0, -1\n"
                     "addi %[current_colors], %[current_colors], 1\n" // increase pointer to next elem // TODO low high proceduren mit zeiten anpassen, sonst funktionsfähig?!
+                    "li t4, 8\n" // bit iterator counter
+                    "li t1, 0x80\n" // load a binary mask to filter only relevant bit
+                "bitloop:\n"
+                    "lb t2, (%[current_colors])\n" // load byte in t2
+                    "and  t3, t1, t2\n" // apply mask and store mask result in t3
+                    "sw %[high], (%[output])\n" // begin first high output
+                    "beqz t3, writelow\n" // jump to low procedure if bit is 0
+                 "writehigh:\n" // write high output
+                    "beqz t4, byteloop\n"
+                    "beqz t0, endloop\n"
+                    "srli t1, t1, 1\n" // right shift mask to check next bit
                     "nop\n"
                     "nop\n"
                     "nop\n"
                     "nop\n"
-                    "nop\n"
-                    "nop\n"
-                    "nop\n"
+                    "addi t4, t4, -1\n"
                     "sw %[low], (%[output])\n"
-                    "nop\n"
-                    "addi t0, t0, -1\n"
-                    "j beginloop\n"
+                    "j bitloop\n"
                  "writelow:\n" // write low output
-                    "sw %[high], (%[output])\n"
-                    "nop\n"
-                    "nop\n"
-                    "nop\n"
+                    "beqz t4, byteloop\n"
+                    "beqz t0, endloop\n"
                     "sw %[low], (%[output])\n"
+                    "addi t4, t4, -1\n"
+                    "srli t1, t1, 1\n" // right shift mask to check next bit
                     "nop\n"
                     "nop\n"
                     "nop\n"
-                    "nop\n"
-                    "nop\n"
-                    "nop\n"
-                    "nop\n"
-                    "nop\n"
-                    "addi t0, t0, -1\n"
-                    "j beginloop\n"
+                    "j bitloop\n"
                 "endloop:\n"
                  "end:\n"
                  "sw   %[high], 0(%[output])\n"
@@ -69,8 +62,7 @@ static void enable_led_stripe(uint_t *color_data)
                  : [output] "r" (GPIO_CTRL_ADDR + GPIO_OUTPUT_VAL),
                    [high]   "r" (reg |  pin),
                    [low]    "r" (reg & ~pin),
-                   [current_colors]   "r" (current_colors),
-                   [current_length] "r" (current_length)
+                   [current_colors]   "r" (current_colors)
     );
 }
 
