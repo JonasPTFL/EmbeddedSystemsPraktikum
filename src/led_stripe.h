@@ -107,9 +107,17 @@ void show_next_led_stripe_colors(void){
     const color green = {255, 0, 0};
     const color blue = {0, 0, 255};
 
-    static color colors[] = { blue, red, green, blue, red, green, blue, red, green, blue };
-    color *current_colors = colors + color_index;
-    enable_led_stripe((uint_t *)current_colors);
+    static color first_colors[10] = { blue, red, green, blue, red, green, blue, red, green, blue };
+    static color second_colors[10] = { red, green, blue, red, green, blue, red, green, blue, red };
+    static color third_colors[10] = { green, blue, red, green, blue, red, green, blue, red, green };
+
+    if (color_index == 0){
+        enable_led_stripe(first_colors);
+    } else if (color_index == 1){
+        enable_led_stripe(second_colors);
+    } else {
+        enable_led_stripe(third_colors);
+    }
     
     color_index++;
     

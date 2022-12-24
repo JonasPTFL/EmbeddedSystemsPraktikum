@@ -12,7 +12,7 @@ void i2c_init(void)
 {
 	// set up gpio pins to i2c use
 	GPIO_REG(GPIO_IOF_SEL) &= (uint32_t) ~((1U << IOF_I2C_SCL) | (1U << IOF_I2C_SDA));
-	GPIO_REG(GPIO_IOF_EN)  |= (uint32_t) ((1U << IOF_I2C_SCL) | (1U << IOF_I2C_SDA)); // TODO weitermachen misra
+	GPIO_REG(GPIO_IOF_EN)  |= (uint32_t) ((1U << IOF_I2C_SCL) | (1U << IOF_I2C_SDA));
 
 	// prescaler to 100 kHz
 	I2C_REG(I2C0_CONTROL) &= ~(1U << I2C_CTRL_EN);
@@ -73,7 +73,7 @@ static uint_t i2c_read(uint_t i2c_address, uint_t analog_channel)
 
 		// send acknowledge to the sensor and finish read process
 		I2C_REG(I2C0_TRANSMIT) = 0;
-		I2C_REG(I2C0_COMMAND) = (1U << I2C_CMD_ACK);
+		I2C_REG(I2C0_COMMAND)  = (1U << I2C_CMD_ACK);
 		
 		i2c_wait_response();
 
