@@ -1,8 +1,14 @@
-#include "functions.h"
-#include "song.h"
-#include "light_sensor.h"
-#include "led_stripe.h"
-#include "buzzer.h"
+#include "types.h"
+
+#include "encoding.h"
+#include "platform.h"
+#include "wrap.h"
+#include "startup.h"
+
+#include "display.h"
+#include "font.h"
+#include "framebuffer.h"
+
 
 /* delay the program for a specific amount of milliseconds  */
 void delay(double milliseconds){
@@ -13,47 +19,49 @@ void delay(double milliseconds){
     }
 }
 
+/* sets up the button with the given gpio pin  */
+void setup_button(uint32_t gpio_pin){
+	// REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1U << gpio_pin);
+	// REG(GPIO_BASE + GPIO_PUE) |= 1U << gpio_pin;
+	// REG(GPIO_BASE + GPIO_INPUT_EN) |= 1U << gpio_pin;
+	// REG(GPIO_BASE + GPIO_OUTPUT_EN) &= ~(1U << gpio_pin);
+	// REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << gpio_pin);
+}
+
+/* returns true, if the given button pin is pressed  */
+boolean is_pressed(uint32_t button){
+    // boolean result;
+    // if((uint32_t)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1U << button)) == 0U) {
+    //     result = TRUE;
+    // } else {
+    //     result = FALSE;
+    // }
+    // return result;
+}
+
 /* sets up the program (leds and buttons)  */
 void setup(void){
-    setup_buzzer();
-    setup_led_stripe();
-    i2c_init();
+    //init oled inclusive spi
+	// oled_init();
+    // setup_button(BUTTON_LEFT_DOWN);
+    // setup_button(BUTTON_LEFT_UP);
+    // setup_button(BUTTON_RIGHT_DOWN);
+    // setup_button(BUTTON_RIGHT_UP);
+    // printChar('T');
+    // printChar('E');
+    // printChar('S');
+    // printChar('T');
 }
 
 /* programm loop, that runs forever  */
 void loop(void){
-
-    uint_t brightness = read_light_sensor();
-    if(brightness > BRIGTHNESS_CHANGE_VALUE){
-        for (uint_t i = 0; i < sizeof(song)/sizeof(song[0]); i++){
-        
-            brightness = read_light_sensor();
-            
-            uint_t tone_frequency = song[i];
-            float tone_duration = duration[i];
-
-            if(brightness > BRIGTHNESS_CHANGE_VALUE){
-                play_tone(tone_frequency, tone_duration);
-                show_next_led_stripe_colors();
-            } else {
-                disable_led_stripe();
-                break;
-            }
-        }
-    }
+   
 
 }
 
 /* main method, which starts the program  */
 int main(void){
-
     setup();
-
-    // test
-    asm(
-        ""
-        ""
-    );
 
     while(1){
         loop();

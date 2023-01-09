@@ -4,6 +4,12 @@
         "types.h": "c",
         "game.h": "c",
         "time.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "font.h": "c",
+        "encoding.h": "c",
+        "framebuffer.h": "c",
+        "display.h": "c",
+        "platform.h": "c",
+        "wrap.h": "c"
     }
 }

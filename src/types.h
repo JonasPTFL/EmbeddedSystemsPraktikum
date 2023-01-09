@@ -23,25 +23,27 @@ typedef unsigned long long uint64_t;
 #define GPIO_OUTPUT_VAL 0xc
 #define GPIO_IOF_EN 0x38
 #define GPIO_INPUT_VAL 0x0
+#define GPIO_PUE 0x10
 
 /* time measurement */
 #define CLINT_CTRL_ADDR 0x02000000UL
 #define CLINT_MTIME 0xBFF8
 #define RTC_FREQ 32768
-
-/* led gpio pins */
-#define LED_STRIPE 9U
-#define BUZZER 11
-
-/* time length definitions */
 #define MILLISECONDS_PER_SECOND 1000
-#define BRIGTHNESS_CHANGE_VALUE 110U
 
+/* pins */
+#define BUTTON_LEFT_UP 10
+#define BUTTON_LEFT_DOWN 11
+#define BUTTON_RIGHT_DOWN 20
+#define BUTTON_RIGHT_UP 21
+#define GREEN_LED 22
+#define BLUE_LED 23
+#define YELLOW_LED 0
+#define RED_LED 1
 
-typedef struct color {
-    uint_t g;
-    uint_t r;
-    uint_t b;
-} color;
+/* defining own boolean enum struct for better readability */
+typedef enum {
+    FALSE, TRUE
+} boolean;
 
 #endif
