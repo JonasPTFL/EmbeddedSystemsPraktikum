@@ -74,6 +74,7 @@ void enable_led(uint32_t led, boolean state){
 
 void setup(void){
 	oled_init();
+    //fb_init();
 	
 	//delay(2000);
 
@@ -154,6 +155,13 @@ void activate_button_for_interrupt(int pin){
 	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << pin);
 }
 
+
+void clear_button_interrupt(int pin){
+
+	// clear gpio pending interrupt
+	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << pin);
+}
+
 void irq_handler()
 {
 	// claim interrupt
@@ -162,10 +170,13 @@ void irq_handler()
 	// toggle led
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) ^= (1 << RED_LED);
 
-	//printText("Gedrueckt");
+	printText("Gedrueckt");
 
-	// clear gpio pending interrupt
-	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << BUTTON_LEFT_UP);
+    clear_button_interrupt(BUTTON_LEFT_UP);
+    clear_button_interrupt(BUTTON_LEFT_DOWN);
+    clear_button_interrupt(BUTTON_RIGHT_UP);
+    clear_button_interrupt(BUTTON_RIGHT_DOWN);
+
 
 	// complete interrupt
 	REG(PLIC_BASE + PLIC_CLAIM) = nb;
@@ -219,8 +230,6 @@ void vTask4( void *pvParameters )
 	// 	delay(1000);
 	// 	textpos++;
 	// }
-
-	//fb_set_pixel_direct(10,10, 1);
 
 	for( ;; ){}
 }
