@@ -8,9 +8,10 @@
 #include "encoding.h"
 #include "platform.h"
 #include "display.h"
+//#include "framebuffer.h"
 #include "font.h"
 
-#include <string.h>
+//#include <string.h>
 
 
 
@@ -80,7 +81,7 @@ void setup(void){
 	oled_init();
 	
 	delay(2000);
-	
+
 	setup_led(GREEN_LED);
 	setup_led(BLUE_LED);
 	setup_led(YELLOW_LED);
@@ -184,7 +185,7 @@ void vTask1( void *pvParameters )
 
 	for( ;; )
 	{
-		printf(pcTextForTask1);
+		//printf(pcTextForTask1);
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 	}
@@ -197,7 +198,7 @@ void vTask2( void *pvParameters )
 
 	for( ;; )
 	{
-		printf(pcTextForTask2);
+		//printf(pcTextForTask2);
 	}
 }
 
@@ -207,7 +208,7 @@ void vTask3( void *pvParameters )
 	toggle_led(YELLOW_LED);
 	for( ;; )
 	{
-		printf(pcTextForTask3);
+		//printf(pcTextForTask3);
 	}
 }
 
@@ -228,8 +229,10 @@ void vTask4( void *pvParameters )
 	// 	textpos++;
 	// }
 
+	//fb_set_pixel_direct(10,10, 1);
+
 	for( ;; )
 	{
-		printf(pcTextForTask4);
+		//printf(pcTextForTask4);
 	}
 }
