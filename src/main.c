@@ -5,11 +5,11 @@
 #include "wrap.h"
 #include "types.h"
 /* includes for oled display */
-// #include "encoding.h"
-// #include "platform.h"
-// #include "display.h"
-//#include "framebuffer.h"
-// #include "font.h"
+#include "encoding.h"
+#include "platform.h"
+#include "display.h"
+#include "framebuffer.h"
+#include "font.h"
 
 //#include <string.h>
 
@@ -26,11 +26,6 @@ void vTask2( void *pvParameters );
 void vTask3( void *pvParameters );
 void vTask4( void *pvParameters );
 
-const char *pcTextForTask1 = "Enabled Green LED\n";
-const char *pcTextForTask2 = "Enable Blue LED\n";
-const char *pcTextForTask3 = "Enable Yellow LED\n";
-const char *pcTextForTask4 = "Hallo printed\n";
-
 /*-----------------------------------------------------------*/
 int main( void )
 {
@@ -39,10 +34,10 @@ int main( void )
 	/* _init for uart printf */
 	_init();
 	/* three tasks with different priorities */
-	xTaskCreate( vTask1, "Enabled Green LED", 1000, (void*)pcTextForTask1, 2, NULL );
-	xTaskCreate( vTask2, "Enable Blue LED", 1000, (void*)pcTextForTask2, 1, NULL );
-	xTaskCreate( vTask3, "Enable Yellow LED", 1000, (void*)pcTextForTask3, 1, NULL );
-	xTaskCreate( vTask4, "Print Hallo", 1000, (void*)pcTextForTask4, 2, NULL );
+	xTaskCreate( vTask1, "Enabled Green LED", 1000, NULL, 2, NULL );
+	xTaskCreate( vTask2, "Enable Blue LED", 1000, NULL, 1, NULL );
+	xTaskCreate( vTask3, "Enable Yellow LED", 1000, NULL, 1, NULL );
+	xTaskCreate( vTask4, "Print Hallo", 1000, NULL, 2, NULL );
 
 	/* start scheduler */
 	vTaskStartScheduler();
@@ -78,7 +73,7 @@ void enable_led(uint32_t led, boolean state){
 }
 
 void setup(void){
-	//oled_init();
+	oled_init();
 	
 	//delay(2000);
 
@@ -94,6 +89,7 @@ void setup(void){
 	setup_button(BUTTON_LEFT_DOWN);
 	setup_button(BUTTON_LEFT_UP);
 
+	printText("Test");
 
 	init_irq();
 }
@@ -159,12 +155,7 @@ void irq_handler()
 	// toggle led
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) ^= (1 << RED_LED);
 
-
-	// printChar('T');
-	// printChar('e');
-	// printChar('s');
-	// printChar('t');
-	// printChar('1');
+	//printText("Gedrueckt");
 
 	// clear gpio pending interrupt
 	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << BUTTON_LEFT_UP);
@@ -185,7 +176,6 @@ void vTask1( void *pvParameters )
 
 	for( ;; )
 	{
-		//printf(pcTextForTask1);
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 	}
@@ -196,20 +186,14 @@ void vTask2( void *pvParameters )
 {
 	toggle_led(BLUE_LED);
 
-	for( ;; )
-	{
-		//printf(pcTextForTask2);
-	}
+	for( ;; ){}
 }
 
 /*-----------------------------------------------------------*/
 void vTask3( void *pvParameters )
 {
 	toggle_led(YELLOW_LED);
-	for( ;; )
-	{
-		//printf(pcTextForTask3);
-	}
+	for( ;; ){}
 }
 
 /*-----------------------------------------------------------*/
@@ -231,8 +215,5 @@ void vTask4( void *pvParameters )
 
 	//fb_set_pixel_direct(10,10, 1);
 
-	for( ;; )
-	{
-		//printf(pcTextForTask4);
-	}
+	for( ;; ){}
 }
