@@ -5,11 +5,11 @@
 #include "wrap.h"
 #include "types.h"
 /* includes for oled display */
-#include "encoding.h"
-#include "platform.h"
-#include "display.h"
+// #include "encoding.h"
+// #include "platform.h"
+// #include "display.h"
 //#include "framebuffer.h"
-#include "font.h"
+// #include "font.h"
 
 //#include <string.h>
 
@@ -78,9 +78,9 @@ void enable_led(uint32_t led, boolean state){
 }
 
 void setup(void){
-	oled_init();
+	//oled_init();
 	
-	delay(2000);
+	//delay(2000);
 
 	setup_led(GREEN_LED);
 	setup_led(BLUE_LED);
@@ -160,11 +160,11 @@ void irq_handler()
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) ^= (1 << RED_LED);
 
 
-	printChar('T');
-	printChar('e');
-	printChar('s');
-	printChar('t');
-	printChar('1');
+	// printChar('T');
+	// printChar('e');
+	// printChar('s');
+	// printChar('t');
+	// printChar('1');
 
 	// clear gpio pending interrupt
 	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << BUTTON_LEFT_UP);
