@@ -126,25 +126,32 @@ void init_irq()
     // threshold 0
     REG(PLIC_BASE + PLIC_THRESH) = 0;
 
-    // enable irq for button and set priority for button to 1
-    // interrupts for gpio start at 8
-    REG(PLIC_BASE + PLIC_ENABLE) |= (1 << (8+BUTTON_LEFT_UP));
-    REG(PLIC_BASE + 4*(8+BUTTON_LEFT_UP)) = 1;
-
     // set handler
     asm volatile ("csrw mtvec, %0" :: "r"(irq_handler));
 
-	// irq at rising
-    REG(GPIO_BASE + GPIO_RISE_IE) |= (1 << BUTTON_LEFT_UP);
-
-	// clear gpio pending interrupt
-	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << BUTTON_LEFT_UP);
+	activate_button_for_interrupt(BUTTON_LEFT_UP);
+	activate_button_for_interrupt(BUTTON_LEFT_DOWN);
+	activate_button_for_interrupt(BUTTON_RIGHT_UP);
+	activate_button_for_interrupt(BUTTON_RIGHT_DOWN);
 
     // enable plic interrupts, set meie
     asm volatile ("csrw mie, %0" :: "r"(1<<11));
 
     // Enable all interrupts, set mie
     asm volatile ("csrw mstatus, %0" :: "i"(0x8));
+}
+
+void activate_button_for_interrupt(int pin){
+	// enable irq for button and set priority for button to 1
+    // interrupts for gpio start at 8
+    REG(PLIC_BASE + PLIC_ENABLE) |= (1 << (8+pin));
+    REG(PLIC_BASE + 4*(8+pin)) = 1;
+
+	// irq at rising
+    REG(GPIO_BASE + GPIO_RISE_IE) |= (1 << pin);
+
+	// clear gpio pending interrupt
+	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << pin);
 }
 
 void irq_handler()
