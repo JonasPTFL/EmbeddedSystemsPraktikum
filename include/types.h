@@ -49,6 +49,7 @@ typedef unsigned long long uint64_t;
 
 #define GAME_BAR_HEIGHT 10
 #define GAME_BAR_PADDING 3
+#define GAME_UPDATE_INTERVAL_MILLIS 20
 
 
 /* defining own boolean enum struct for better readability */

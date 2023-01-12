@@ -72,7 +72,7 @@ void enable_led(uint32_t led, boolean state){
 
 void setup(void){
 
-	init_irq();
+	//init_irq();
 
 	oled_init();
     fb_init();
@@ -88,11 +88,6 @@ void setup(void){
 	setup_button(BUTTON_RIGHT_UP);
 	setup_button(BUTTON_LEFT_DOWN);
 	setup_button(BUTTON_LEFT_UP);
-
-	fb_set_pixel_direct(ballX, ballY, 1);
-
-	draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
-	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
 }
 
 
@@ -128,7 +123,7 @@ void init_irq()
     REG(PLIC_BASE + PLIC_THRESH) = 0;
 
     // set handler
-    //asm volatile ("csrw mtvec, %0" :: "r"(irq_handler));
+    asm volatile ("csrw mtvec, %0" :: "r"(irq_handler));
 
 	activate_button_for_interrupt(BUTTON_LEFT_UP);
 	activate_button_for_interrupt(BUTTON_LEFT_DOWN);
@@ -136,10 +131,10 @@ void init_irq()
 	activate_button_for_interrupt(BUTTON_RIGHT_DOWN);
 
     // enable plic interrupts, set meie
-    //asm volatile ("csrw mie, %0" :: "r"(1<<11));
+    asm volatile ("csrw mie, %0" :: "r"(1<<11));
 
     // Enable all interrupts, set mie
-    //asm volatile ("csrw mstatus, %0" :: "i"(0x8));
+    asm volatile ("csrw mstatus, %0" :: "i"(0x8));
 }
 
 void activate_button_for_interrupt(int pin){
@@ -184,22 +179,24 @@ void irq_handler()
 void draw_game( void *pvParameters )
 {
 	TickType_t xLastWakeTime;
-	const TickType_t xDelay = pdMS_TO_TICKS( 1000 );
+	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
 
 	xLastWakeTime = xTaskGetTickCount();
-
-	fb_init();
-	fb_set_pixel_direct(ballX, ballY, 1);
-
-	draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
-	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
-
 
 
 	for( ;; )
 	{
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
+
+
+
+		fb_init();
+		oled_clear();
+		fb_set_pixel_direct(ballX, ballY, 1);
+
+		draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
+		draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
 	}
 }
 
@@ -212,14 +209,29 @@ void draw_game_bar(uint8_t x, uint8_t y){
 /*-----------------------------------------------------------*/
 void update_game( void *pvParameters )
 {
-	TickType_t xNextWakeTime = xTaskGetTickCount();
-	
-	ballX += ball_speed_x;
-	ballY += ball_speed_y;
+	TickType_t xLastWakeTime;
+	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
 
-	for( ;; ){
+	xLastWakeTime = xTaskGetTickCount();
 
-		/* Place this task in the blocked state until it is time to run again. */
-		vTaskDelayUntil( &xNextWakeTime, 1000 );
+
+	for( ;; )
+	{
+		/* periodic */
+		vTaskDelayUntil( &xLastWakeTime, xDelay );
+
+		ballX += ball_speed_x;
+		ballY += ball_speed_y;
+
+		if(ballX >= DISP_W-1){
+			ball_speed_x = -ball_speed_x;
+		} else if(ballX <= 1){
+			ball_speed_x = -ball_speed_x;
+		}
+		if(ballY >= DISP_H-1){
+			ball_speed_y = -ball_speed_y;
+		}else if(ballY <= 1){
+			ball_speed_y = -ball_speed_y;
+		}
 	}
 }
