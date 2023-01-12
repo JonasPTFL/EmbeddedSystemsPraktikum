@@ -74,9 +74,7 @@ void enable_led(uint32_t led, boolean state){
 
 void setup(void){
 	oled_init();
-    //fb_init();
-	
-	//delay(2000);
+    fb_init();
 
 	setup_led(GREEN_LED);
 	setup_led(BLUE_LED);
@@ -91,6 +89,8 @@ void setup(void){
 	setup_button(BUTTON_LEFT_UP);
 
 	printText("Test");
+
+	fb_set_pixel_direct(10, 10, 1);
 
 	init_irq();
 }
