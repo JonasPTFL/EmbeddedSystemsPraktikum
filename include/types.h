@@ -26,10 +26,10 @@ typedef unsigned long long uint64_t;
 #define GPIO_PUE 0x10
 
 /* interrupt */
-#define PLIC_BASE   0x0C000000
+#define PLIC_BASE 0x0C000000
 #define PLIC_ENABLE 0x2000
 #define PLIC_THRESH 0x200000
-#define PLIC_CLAIM  0x200004
+#define PLIC_CLAIM 0x200004
 
 /* time measurement */
 #define CLINT_CTRL_ADDR 0x02000000UL

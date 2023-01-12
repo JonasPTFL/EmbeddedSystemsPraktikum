@@ -13,14 +13,12 @@
 
 //#include <string.h>
 
+void irq_handler() __attribute__((interrupt));
 
 int left_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2), right_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
 int ball_x = DISP_W/2, ball_y = DISP_H/2;
 int ball_speed_x = 1, ball_speed_y = 1;
 int last_ball_pos_x = -1, last_ball_pos_y = -1;
-
-void irq_handler() __attribute__((interrupt));
-
 
 /*-----------------------------------------------------------*/
 
@@ -73,7 +71,7 @@ void enable_led(uint32_t led, boolean state){
 
 void setup(void){
 
-	//init_irq();
+	init_irq();
 
 	oled_init();
     fb_init();
@@ -121,26 +119,32 @@ void setup_button(uint32_t gpio_pin){
 
 void init_irq()
 {
-    // PLIC, 52 sources, 7 priorities
-    // all off
-    REG(PLIC_BASE + PLIC_ENABLE) = 0;
-    REG(PLIC_BASE + PLIC_ENABLE + 4) = 0;
-    // threshold 0
-    REG(PLIC_BASE + PLIC_THRESH) = 0;
+    	// PLIC, 52 sources, 7 priorities
+	// all off
+	REG(PLIC_BASE + PLIC_ENABLE) = 0;
+	REG(PLIC_BASE + PLIC_ENABLE + 4) = 0;
+	// threshold 0
+	REG(PLIC_BASE + PLIC_THRESH) = 0;
 
-    // set handler
-    asm volatile ("csrw mtvec, %0" :: "r"(irq_handler));
+	// enable irq for button and set priority for button to 1
+	// interrupts for gpio start at 8
+	REG(PLIC_BASE + PLIC_ENABLE) |= (1 << (8 + BUTTON_LEFT_UP));
+	REG(PLIC_BASE + 4 * (8 + BUTTON_LEFT_UP)) = 1;
 
-	activate_button_for_interrupt(BUTTON_LEFT_UP);
-	activate_button_for_interrupt(BUTTON_LEFT_DOWN);
-	activate_button_for_interrupt(BUTTON_RIGHT_UP);
-	activate_button_for_interrupt(BUTTON_RIGHT_DOWN);
+	// set handler
+	//asm volatile("csrw mtvec, %0" ::"r"(irq_handler));
 
-    // enable plic interrupts, set meie
-    asm volatile ("csrw mie, %0" :: "r"(1<<11));
+	// irq at rising
+	REG(GPIO_BASE + GPIO_RISE_IE) |= (1 << BUTTON_LEFT_UP);
 
-    // Enable all interrupts, set mie
-    asm volatile ("csrw mstatus, %0" :: "i"(0x8));
+	// clear gpio pending interrupt
+	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << BUTTON_LEFT_UP);
+
+	// enable plic interrupts, set meie
+	//asm volatile("csrw mie, %0" ::"r"(1 << 11));
+
+	// Enable all interrupts, set mie
+	//asm volatile("csrw mstatus, %0" ::"i"(0x8));
 }
 
 void activate_button_for_interrupt(int pin){
@@ -171,11 +175,8 @@ void irq_handler()
 	// toggle led
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) ^= (1 << RED_LED);
 
-    clear_button_interrupt(BUTTON_LEFT_UP);
-    clear_button_interrupt(BUTTON_LEFT_DOWN);
-    clear_button_interrupt(BUTTON_RIGHT_UP);
-    clear_button_interrupt(BUTTON_RIGHT_DOWN);
-
+	// clear gpio pending interrupt
+	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << BUTTON_LEFT_UP);
 
 	// complete interrupt
 	REG(PLIC_BASE + PLIC_CLAIM) = nb;
@@ -220,12 +221,13 @@ void update_game( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
-		// check edges
-		if(ball_x >= DISP_W-1){
-			ball_speed_x = -ball_speed_x;
-		} else if(ball_x <= 1){
-			ball_speed_x = -ball_speed_x;
+		if(ball_x <= 0 || ball_x >= DISP_W){
+			// game over
+			printText("Game over");
+			continue;
 		}
+
+		// check edges
 		if(ball_y >= DISP_H-1){
 			ball_speed_y = -ball_speed_y;
 		}else if(ball_y <= 1){
