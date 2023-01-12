@@ -15,8 +15,9 @@
 
 
 int left_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2), right_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
-int ballX = DISP_W/2, ballY = DISP_H/2;
+int ball_x = DISP_W/2, ball_y = DISP_H/2;
 int ball_speed_x = 1, ball_speed_y = 1;
+int last_ball_pos_x = -1, last_ball_pos_y = -1;
 
 void irq_handler() __attribute__((interrupt));
 
@@ -24,7 +25,7 @@ void irq_handler() __attribute__((interrupt));
 /*-----------------------------------------------------------*/
 
 /* The task functions. */
-void draw_game( void *pvParameters );
+void update_ball( void *pvParameters );
 void update_game( void *pvParameters );
 
 /*-----------------------------------------------------------*/
@@ -34,7 +35,7 @@ int main( void )
 	setup();
 
 	/* three tasks with different priorities */
-	xTaskCreate( draw_game, "Draw game", 1000, NULL, 2, NULL );
+	xTaskCreate( update_ball, "Draw game", 1000, NULL, 2, NULL );
 	xTaskCreate( update_game, "Updates the game", 1000, NULL, 1, NULL );
 
 	/* start scheduler */
@@ -88,6 +89,11 @@ void setup(void){
 	setup_button(BUTTON_RIGHT_UP);
 	setup_button(BUTTON_LEFT_DOWN);
 	setup_button(BUTTON_LEFT_UP);
+
+
+	// intitially draw bars
+	draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
+	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
 }
 
 
@@ -176,7 +182,7 @@ void irq_handler()
 }
 
 /*-----------------------------------------------------------*/
-void draw_game( void *pvParameters )
+void update_ball( void *pvParameters )
 {
 	TickType_t xLastWakeTime;
 	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
@@ -190,13 +196,7 @@ void draw_game( void *pvParameters )
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
 
-
-		fb_init();
-		oled_clear();
-		fb_set_pixel_direct(ballX, ballY, 1);
-
-		draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
-		draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
+		// currently nothing
 	}
 }
 
@@ -220,18 +220,33 @@ void update_game( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
-		ballX += ball_speed_x;
-		ballY += ball_speed_y;
+		// check edges
+		if(ball_x >= DISP_W-1){
+			ball_speed_x = -ball_speed_x;
+		} else if(ball_x <= 1){
+			ball_speed_x = -ball_speed_x;
+		}
+		if(ball_y >= DISP_H-1){
+			ball_speed_y = -ball_speed_y;
+		}else if(ball_y <= 1){
+			ball_speed_y = -ball_speed_y;
+		}
 
-		if(ballX >= DISP_W-1){
-			ball_speed_x = -ball_speed_x;
-		} else if(ballX <= 1){
-			ball_speed_x = -ball_speed_x;
+		// check bars
+		if(ball_x == GAME_BAR_PADDING+1 || ball_x == DISP_W-GAME_BAR_PADDING-1){
+			// x position matches bar x pos
+			if((ball_y <= left_game_bar_height && ball_y > left_game_bar_height - GAME_BAR_HEIGHT)
+				|| (ball_y <= right_game_bar_height && ball_y > right_game_bar_height - GAME_BAR_HEIGHT)){
+				ball_speed_x = -ball_speed_x;
+			}
+
 		}
-		if(ballY >= DISP_H-1){
-			ball_speed_y = -ball_speed_y;
-		}else if(ballY <= 1){
-			ball_speed_y = -ball_speed_y;
-		}
+
+		fb_set_pixel_direct(ball_x, ball_y, 0);
+
+		ball_x += ball_speed_x;
+		ball_y += ball_speed_y;
+
+		fb_set_pixel_direct(ball_x, ball_y, 1);
 	}
 }
