@@ -71,7 +71,7 @@ void enable_led(uint32_t led, boolean state){
 
 void setup(void){
 
-	init_irq();
+	//init_irq();
 
 	oled_init();
     fb_init();
@@ -94,6 +94,10 @@ void setup(void){
 }
 
 void draw_game_bars(void){
+	for(uint8_t i=0; i < DISP_H; i++){
+		fb_set_pixel_direct(GAME_BAR_PADDING, i, 0);
+		fb_set_pixel_direct(DISP_W-GAME_BAR_PADDING, i, 0);
+	}
 	draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
 	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
 }
@@ -171,6 +175,10 @@ void irq_handler()
 		left_game_bar_height += GAME_BAR_STEP_LENGTH;
 	} else if(nb == BUTTON_LEFT_DOWN){
 		left_game_bar_height -= GAME_BAR_STEP_LENGTH;
+	} else if(nb == BUTTON_RIGHT_UP){
+		right_game_bar_height += GAME_BAR_STEP_LENGTH;
+	}  else if(nb == BUTTON_RIGHT_DOWN){
+		right_game_bar_height -= GAME_BAR_STEP_LENGTH;
 	}
 	
 
@@ -178,6 +186,25 @@ void irq_handler()
 
 	// complete interrupt
 	REG(PLIC_BASE + PLIC_CLAIM) = nb;
+}
+
+/* returns true, if the given button pin is pressed  */
+boolean is_pressed(uint32_t button){
+    boolean result;
+    if((uint32_t)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1U << button)) == 0U) {
+        result = TRUE;
+    } else {
+        result = FALSE;
+    }
+    return result;
+}
+
+uint8_t check_bar_in_screen(uint8_t bar_height){
+	if(bar_height < GAME_BAR_HEIGHT) {
+		return GAME_BAR_HEIGHT;
+	} else if (bar_height > DISP_H) {
+		return DISP_H;
+	}
 }
 
 /*-----------------------------------------------------------*/
@@ -194,10 +221,25 @@ void update_ball( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
+		if (is_pressed(BUTTON_LEFT_UP)){
+			left_game_bar_height -= GAME_BAR_STEP_LENGTH;
+		} else if(is_pressed(BUTTON_LEFT_DOWN)){
+			left_game_bar_height += GAME_BAR_STEP_LENGTH;
+		} else if(is_pressed(BUTTON_RIGHT_UP)){
+			right_game_bar_height -= GAME_BAR_STEP_LENGTH;
+		} else if(is_pressed(BUTTON_RIGHT_DOWN)){
+			right_game_bar_height += GAME_BAR_STEP_LENGTH;
+		} else {
+			continue;
+		}
+		right_game_bar_height = check_bar_in_screen(right_game_bar_height);
+		left_game_bar_height = check_bar_in_screen(left_game_bar_height);
+		draw_game_bars();
 
 		// currently nothing
 	}
 }
+
 
 void draw_game_bar(uint8_t x, uint8_t y){
 	for(uint8_t i=0; i < GAME_BAR_HEIGHT; i++){
@@ -219,11 +261,11 @@ void update_game( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
-		if(ball_x <= 0 || ball_x >= DISP_W){
-			// game over
-			printText("Game over");
-			continue;
-		}
+		// if(ball_x <= 0 || ball_x >= DISP_W){
+		// 	// game over
+		// 	printText("Game over");
+		// 	continue;
+		// }
 
 		// check edges
 		if(ball_y >= DISP_H-1){
