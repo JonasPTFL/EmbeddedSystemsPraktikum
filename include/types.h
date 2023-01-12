@@ -47,6 +47,10 @@ typedef unsigned long long uint64_t;
 #define YELLOW_LED 0
 #define RED_LED 1
 
+#define GAME_BAR_HEIGHT 10
+#define GAME_BAR_PADDING 3
+
+
 /* defining own boolean enum struct for better readability */
 typedef enum {
     FALSE, TRUE

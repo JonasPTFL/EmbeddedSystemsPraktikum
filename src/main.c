@@ -14,6 +14,9 @@
 //#include <string.h>
 
 
+int left_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2), right_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
+int ballX = DISP_W/2, ballY = DISP_H/2;
+int ball_speed_x = 1, ball_speed_y = 1;
 
 void irq_handler() __attribute__((interrupt));
 
@@ -21,23 +24,18 @@ void irq_handler() __attribute__((interrupt));
 /*-----------------------------------------------------------*/
 
 /* The task functions. */
-void vTask1( void *pvParameters );
-void vTask2( void *pvParameters );
-void vTask3( void *pvParameters );
-void vTask4( void *pvParameters );
+void draw_game( void *pvParameters );
+void update_game( void *pvParameters );
 
 /*-----------------------------------------------------------*/
 int main( void )
 {
 
 	setup();
-	/* _init for uart printf */
-	_init();
+
 	/* three tasks with different priorities */
-	xTaskCreate( vTask1, "Enabled Green LED", 1000, NULL, 2, NULL );
-	xTaskCreate( vTask2, "Enable Blue LED", 1000, NULL, 1, NULL );
-	xTaskCreate( vTask3, "Enable Yellow LED", 1000, NULL, 1, NULL );
-	xTaskCreate( vTask4, "Print Hallo", 1000, NULL, 2, NULL );
+	xTaskCreate( draw_game, "Draw game", 1000, NULL, 2, NULL );
+	xTaskCreate( update_game, "Updates the game", 1000, NULL, 1, NULL );
 
 	/* start scheduler */
 	vTaskStartScheduler();
@@ -73,6 +71,9 @@ void enable_led(uint32_t led, boolean state){
 }
 
 void setup(void){
+
+	init_irq();
+
 	oled_init();
     fb_init();
 
@@ -88,11 +89,10 @@ void setup(void){
 	setup_button(BUTTON_LEFT_DOWN);
 	setup_button(BUTTON_LEFT_UP);
 
-	printText("Test");
+	fb_set_pixel_direct(ballX, ballY, 1);
 
-	fb_set_pixel_direct(10, 10, 1);
-
-	init_irq();
+	draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
+	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
 }
 
 
@@ -128,7 +128,7 @@ void init_irq()
     REG(PLIC_BASE + PLIC_THRESH) = 0;
 
     // set handler
-    asm volatile ("csrw mtvec, %0" :: "r"(irq_handler));
+    //asm volatile ("csrw mtvec, %0" :: "r"(irq_handler));
 
 	activate_button_for_interrupt(BUTTON_LEFT_UP);
 	activate_button_for_interrupt(BUTTON_LEFT_DOWN);
@@ -136,10 +136,10 @@ void init_irq()
 	activate_button_for_interrupt(BUTTON_RIGHT_DOWN);
 
     // enable plic interrupts, set meie
-    asm volatile ("csrw mie, %0" :: "r"(1<<11));
+    //asm volatile ("csrw mie, %0" :: "r"(1<<11));
 
     // Enable all interrupts, set mie
-    asm volatile ("csrw mstatus, %0" :: "i"(0x8));
+    //asm volatile ("csrw mstatus, %0" :: "i"(0x8));
 }
 
 void activate_button_for_interrupt(int pin){
@@ -170,8 +170,6 @@ void irq_handler()
 	// toggle led
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) ^= (1 << RED_LED);
 
-	printText("Gedrueckt");
-
     clear_button_interrupt(BUTTON_LEFT_UP);
     clear_button_interrupt(BUTTON_LEFT_DOWN);
     clear_button_interrupt(BUTTON_RIGHT_UP);
@@ -183,14 +181,20 @@ void irq_handler()
 }
 
 /*-----------------------------------------------------------*/
-void vTask1( void *pvParameters )
+void draw_game( void *pvParameters )
 {
 	TickType_t xLastWakeTime;
 	const TickType_t xDelay = pdMS_TO_TICKS( 1000 );
 
 	xLastWakeTime = xTaskGetTickCount();
 
-	toggle_led(GREEN_LED);
+	fb_init();
+	fb_set_pixel_direct(ballX, ballY, 1);
+
+	draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
+	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
+
+
 
 	for( ;; )
 	{
@@ -199,37 +203,23 @@ void vTask1( void *pvParameters )
 	}
 }
 
-/*-----------------------------------------------------------*/
-void vTask2( void *pvParameters )
-{
-	toggle_led(BLUE_LED);
-
-	for( ;; ){}
+void draw_game_bar(uint8_t x, uint8_t y){
+	for(uint8_t i=0; i < GAME_BAR_HEIGHT; i++){
+		fb_set_pixel_direct(x, y-i, 1);
+	}
 }
 
 /*-----------------------------------------------------------*/
-void vTask3( void *pvParameters )
+void update_game( void *pvParameters )
 {
-	toggle_led(YELLOW_LED);
-	for( ;; ){}
-}
+	TickType_t xNextWakeTime = xTaskGetTickCount();
+	
+	ballX += ball_speed_x;
+	ballY += ball_speed_y;
 
-/*-----------------------------------------------------------*/
-void vTask4( void *pvParameters )
-{
+	for( ;; ){
 
-	// const char* text = "Oled example...";
-	// uint32_t textpos = 0;
-	// while (textpos < strlen(text))
-	// {
-	// 	printChar(text[textpos]);
-	// 	if(textpos % ((DISP_W / CHAR_W) * (DISP_H/8)) == ((DISP_W / CHAR_W) * (DISP_H/8))-1)
-	// 	{
-	// 		delay(200);
-	// 	}
-	// 	delay(1000);
-	// 	textpos++;
-	// }
-
-	for( ;; ){}
+		/* Place this task in the blocked state until it is time to run again. */
+		vTaskDelayUntil( &xNextWakeTime, 1000 );
+	}
 }
