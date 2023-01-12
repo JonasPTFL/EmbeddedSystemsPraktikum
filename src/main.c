@@ -16,9 +16,10 @@
 void irq_handler() __attribute__((interrupt));
 
 int left_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2), right_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
-int ball_x = DISP_W/2, ball_y = DISP_H/2;
-int ball_speed_x = BALL_SPEED, ball_speed_y = BALL_SPEED;
+float ball_x = DISP_W/2, ball_y = DISP_H/2;
+float ball_speed_x = BALL_SPEED, ball_speed_y = BALL_SPEED;
 int last_ball_pos_x = -1, last_ball_pos_y = -1;
+static uint_t seed = 0;
 
 /*-----------------------------------------------------------*/
 
@@ -50,6 +51,20 @@ void delay(uint32_t milliseconds){
     while ((*now) < then){
         
     }
+}
+
+/* generates a nearly random number from 0 to 3  
+* this method is a modifier version from the method posted on :
+* stackoverflow.com/a/7603688
+* This posted code snippet is a modifier version of an generation algorithm from the wikipedia article:
+* en.wikipedia.org/wiki/Linear_feedback_shift_register
+* and uses bit shift. I modified the output by adding a seed value to get different values
+* when restarting the device. */
+unsigned int nearly_random_number(void){
+    static uint_t lfsr = 0xADEu;
+    uint_t bit = (uint_t)((((lfsr >> 0U) ^ (lfsr >> 2U)) ^ (lfsr >> 3U)) ^ (lfsr >> 5U))  & 1U;
+
+    lfsr =  (lfsr >> 1U) | (bit << 15U);
 }
 
 /* enables all leds with the given state  */
@@ -261,11 +276,11 @@ void update_game( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
-		// if(ball_x <= 0 || ball_x >= DISP_W){
-		// 	// game over
-		// 	printText("Game over");
-		// 	continue;
-		// }
+		if(ball_x <= 0 || ball_x >= DISP_W){
+			// game over
+			printText("Game over");
+			continue;
+		}
 
 		// check edges
 		if(ball_y >= DISP_H-1){
@@ -274,12 +289,21 @@ void update_game( void *pvParameters )
 			ball_speed_y = -ball_speed_y;
 		}
 
+
+
 		// check bars
 		if(ball_x == GAME_BAR_PADDING+1 || ball_x == DISP_W-GAME_BAR_PADDING-1){
 			// x position matches bar x pos
 			if((ball_y <= left_game_bar_height && ball_y > left_game_bar_height - GAME_BAR_HEIGHT)
 				|| (ball_y <= right_game_bar_height && ball_y > right_game_bar_height - GAME_BAR_HEIGHT)){
-				ball_speed_x = -ball_speed_x;
+				
+				if (seed == 0) {
+                    const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
+                    seed = (uint_t)*now;
+                }
+
+				float rand_modifier = nearly_random_number()/5;
+				ball_speed_x = -ball_speed_x + rand_modifier;
 			}
 
 		}

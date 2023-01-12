@@ -39,7 +39,7 @@ typedef unsigned long long uint64_t;
 
 /* pins */
 #define BUTTON_LEFT_UP 18
-#define BUTTON_LEFT_DOWN 11
+#define BUTTON_LEFT_DOWN 19
 #define BUTTON_RIGHT_DOWN 20
 #define BUTTON_RIGHT_UP 21
 #define GREEN_LED 22
@@ -49,9 +49,9 @@ typedef unsigned long long uint64_t;
 
 #define GAME_BAR_HEIGHT 10
 #define GAME_BAR_PADDING 3
-#define GAME_BAR_STEP_LENGTH 5
+#define GAME_BAR_STEP_LENGTH 3
 #define BALL_SPEED 1
-#define GAME_UPDATE_INTERVAL_MILLIS 20
+#define GAME_UPDATE_INTERVAL_MILLIS 23
 
 
 /* defining own boolean enum struct for better readability */
