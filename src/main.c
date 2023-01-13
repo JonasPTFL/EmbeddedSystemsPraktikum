@@ -20,12 +20,14 @@ float ball_x = DISP_W/2, ball_y = DISP_H/2;
 float ball_speed_x = BALL_SPEED, ball_speed_y = BALL_SPEED;
 int last_ball_pos_x = -1, last_ball_pos_y = -1;
 static uint_t seed = 0;
+int left_player_score = 0, right_player_score = 0;
 
 /*-----------------------------------------------------------*/
 
 /* The task functions. */
 void update_ball( void *pvParameters );
 void update_game( void *pvParameters );
+void show_scores( void *pvParameters );
 
 /*-----------------------------------------------------------*/
 int main( void )
@@ -279,7 +281,20 @@ void update_game( void *pvParameters )
 		if(ball_x <= 0 || ball_x >= DISP_W){
 			// game over
 			printText("Game over");
-			continue;
+			if (ball_x <= 0) {
+				right_player_score++;
+			} else {
+				left_player_score++;
+			}
+			
+			
+			//printText(""+left_player_score); // TODO
+			printText(" - ");
+			//printText(""+right_player_score);
+			delay(1500);
+			//xTaskCreate( show_scores, "Shows the player scores", 1000, NULL, 3, NULL );
+			
+			reset_game();
 		}
 
 		// check edges
@@ -324,4 +339,31 @@ void update_game( void *pvParameters )
 
 		fb_set_pixel_direct(ball_x, ball_y, 1);
 	}
+}
+
+void reset_game(){
+
+	fb_init();
+	oled_clear();
+	ball_x = DISP_W/2;
+	ball_y = DISP_H/2;
+	left_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
+	right_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
+
+    ball_speed_x = BALL_SPEED;
+	ball_speed_y = BALL_SPEED;
+    last_ball_pos_x = -1;
+	last_ball_pos_y = -1;
+
+	draw_game_bars();
+	
+}
+
+
+/*-----------------------------------------------------------*/
+void show_scores( void *pvParameters )
+{
+	printText("Score:");
+
+	for( ;; ){}
 }
