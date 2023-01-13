@@ -297,13 +297,22 @@ void update_game( void *pvParameters )
 			if((ball_y <= left_game_bar_height && ball_y > left_game_bar_height - GAME_BAR_HEIGHT)
 				|| (ball_y <= right_game_bar_height && ball_y > right_game_bar_height - GAME_BAR_HEIGHT)){
 				
+				boolean hitTop = (ball_y <= left_game_bar_height && ball_y > left_game_bar_height - GAME_BAR_HEIGHT/2)
+				 || (ball_y <= right_game_bar_height && ball_y > right_game_bar_height - GAME_BAR_HEIGHT/2);
+
 				if (seed == 0) {
                     const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
                     seed = (uint_t)*now;
                 }
 
-				float rand_modifier = nearly_random_number()/5;
-				ball_speed_x = -ball_speed_x + rand_modifier;
+				//float rand_modifier = nearly_random_number()/5;
+				if (hitTop) // TODO weitermachen
+				{
+					ball_speed_y = -1.3;
+				} else {
+					ball_speed_y = 1.3;
+				}
+				ball_speed_x = -ball_speed_x;
 			}
 
 		}
