@@ -14,13 +14,28 @@
 //#include <string.h>
 
 void irq_handler(void) __attribute__((interrupt));
+static void reset_game(void);
+static void activate_button_for_interrupt(int pin);
+static void draw_game_bar(uint8_t x, uint8_t y);
+static void delay(uint32_t milliseconds);
+static unsigned int nearly_random_number(void);
+static void setup(void);
+static void draw_game_bars(void);
+static uint8_t check_bar_in_screen(uint8_t bar_height);
+static boolean is_pressed(uint32_t button);
+static void clear_button_interrupt(int pin);
+static void activate_button_for_interrupt(int pin);
+static void init_irq(void);
+static void setup_button(uint32_t gpio_pin);
 
-static int left_game_bar_height = (int)((DISP_H/2)+(GAME_BAR_HEIGHT/2)), right_game_bar_height = (int)((DISP_H/2)+(GAME_BAR_HEIGHT/2));
-static float ball_x = DISP_W/2, ball_y = DISP_H/2;
-static float ball_speed_x = (float)BALL_SPEED, ball_speed_y = (float)BALL_SPEED;
-static int last_ball_pos_x = -1, last_ball_pos_y = -1;
+static int left_game_bar_height = (int)(((int)DISP_H/2)+((int)GAME_BAR_HEIGHT/2));
+static int right_game_bar_height = (int)(((int)DISP_H/2)+((int)GAME_BAR_HEIGHT/2));
+static float ball_x = (int)DISP_W/2;
+static float ball_y = (int)DISP_H/2;
+static float ball_speed_x = (float)BALL_SPEED;
+static float ball_speed_y = (float)BALL_SPEED;
 static uint_t seed = 0;
-static int left_player_score = 0, right_player_score = 0;
+
 
 /*-----------------------------------------------------------*/
 
@@ -36,8 +51,11 @@ int main( void )
 	setup();
 
 	/* three tasks with different priorities */
-	xTaskCreate( update_ball, "Draw game", 1000, NULL, 2, NULL );
-	xTaskCreate( update_game, "Updates the game", 1000, NULL, 1, NULL );
+	BaseType_t t1 = xTaskCreate( update_ball, "Draw game", 1000, NULL, 2, NULL );
+	BaseType_t t2 = xTaskCreate( update_game, "Updates the game", 1000, NULL, 1, NULL );
+
+	(void) t1;
+	(void) t2;
 
 	/* start scheduler */
 	vTaskStartScheduler();
@@ -67,24 +85,7 @@ unsigned int nearly_random_number(void){
     uint_t bit = (uint_t)((((lfsr >> 0U) ^ (lfsr >> 2U)) ^ (lfsr >> 3U)) ^ (lfsr >> 5U))  & 1U;
 
     lfsr =  (lfsr >> 1U) | (bit << 15U);
-	return lfsr%10;
-}
-
-/* enables all leds with the given state  */
-void enabled_all_leds(boolean state){
-    enable_led(GREEN_LED, state);
-    enable_led(BLUE_LED, state);
-    enable_led(YELLOW_LED, state);
-    enable_led(RED_LED, state);
-}
-
-/* enables a pecific led with the given state  */
-void enable_led(uint32_t led, boolean state){
-    if (state == TRUE){
-		REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= (1U << led);
-    } else{
-	    REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << led);
-    }
+    return (lfsr+seed) % 10U;
 }
 
 void setup(void){
@@ -93,13 +94,6 @@ void setup(void){
 
 	oled_init();
     fb_init();
-
-	setup_led(GREEN_LED);
-	setup_led(BLUE_LED);
-	setup_led(YELLOW_LED);
-	setup_led(RED_LED);
-
-	enabled_all_leds(FALSE);
 
 	setup_button(BUTTON_RIGHT_DOWN);
 	setup_button(BUTTON_RIGHT_UP);
@@ -120,14 +114,6 @@ void draw_game_bars(void){
 	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
 }
 
-/* sets up the given led pin  */
-void setup_led(uint32_t gpio_pin){
-	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << gpio_pin);
-	REG(GPIO_BASE + GPIO_INPUT_EN) &= ~((uint32_t)1 << gpio_pin);
-	REG(GPIO_BASE + GPIO_OUTPUT_EN) |= ((uint32_t)1 << gpio_pin);
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL) |= ((uint32_t)1 << gpio_pin);
-}
-
 /* sets up the button with the given gpio pin  */
 void setup_button(uint32_t gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~(1U << gpio_pin);
@@ -138,7 +124,7 @@ void setup_button(uint32_t gpio_pin){
 }
 
 
-void init_irq(void)
+static void init_irq(void)
 {
     // PLIC, 52 sources, 7 priorities
 	// all off
@@ -167,7 +153,7 @@ void activate_button_for_interrupt(int pin){
 }
 
 
-void clear_button_interrupt(int pin){
+static void clear_button_interrupt(int pin){
 
 	// clear gpio pending interrupt
 	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << pin);
@@ -204,7 +190,7 @@ void irq_handler(void)
 }
 
 /* returns true, if the given button pin is pressed  */
-boolean is_pressed(uint32_t button){
+static boolean is_pressed(uint32_t button){
     boolean result;
     if((uint32_t)(REG(GPIO_BASE + GPIO_INPUT_VAL) & (1U << button)) == 0U) {
         result = TRUE;
@@ -214,11 +200,11 @@ boolean is_pressed(uint32_t button){
     return result;
 }
 
-uint8_t check_bar_in_screen(uint8_t bar_height){
+static uint8_t check_bar_in_screen(uint8_t bar_height){
 	uint8_t new_bar_height = bar_height;
-	if(bar_height < GAME_BAR_HEIGHT) {
+	if(bar_height < (uint8_t)GAME_BAR_HEIGHT) {
 		new_bar_height = GAME_BAR_HEIGHT;
-	} else if (bar_height > DISP_H) {
+	} else if (bar_height > (uint8_t)DISP_H) {
 		new_bar_height = DISP_H;
 	} else {
 
@@ -227,7 +213,7 @@ uint8_t check_bar_in_screen(uint8_t bar_height){
 }
 
 /*-----------------------------------------------------------*/
-void update_ball( void *pvParameters )
+static void update_ball( void *pvParameters )
 {
 	( void ) pvParameters;
 	TickType_t xLastWakeTime;
@@ -264,19 +250,20 @@ void update_ball( void *pvParameters )
 	}
 }
 
-
 void draw_game_bar(uint8_t x, uint8_t y){
-	for(uint8_t i=0; i < GAME_BAR_HEIGHT; i++){
+	for(uint8_t i=0; i < (uint8_t)GAME_BAR_HEIGHT; i++){
 		fb_set_pixel_direct(x, y-i, 1);
 	}
 }
 
 /*-----------------------------------------------------------*/
-void update_game( void *pvParameters )
+static void update_game( void *pvParameters )
 {
 	( void ) pvParameters;
 	TickType_t xLastWakeTime;
 	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
+	static int left_player_score = 0;
+	static int right_player_score = 0;
 
 	xLastWakeTime = xTaskGetTickCount();
 
@@ -286,7 +273,7 @@ void update_game( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
-		if(ball_x <= 0 || ball_x >= DISP_W){
+		if((ball_x <= (float)0) || ( ball_x >= (float)DISP_W)){
 			// game over
 			printText("Game over");
 			if (ball_x <= 0) {
@@ -306,9 +293,9 @@ void update_game( void *pvParameters )
 		}
 
 		// check edges
-		if(ball_y >= DISP_H-1){
+		if(ball_y >= (float)DISP_H-(float)1){
 			ball_speed_y = -ball_speed_y;
-		}else if(ball_y <= 1){
+		}else if(ball_y <= (float)1){
 			ball_speed_y = -ball_speed_y;
 		} else {
 
@@ -317,7 +304,7 @@ void update_game( void *pvParameters )
 
 
 		// check bars
-		if(ball_x == GAME_BAR_PADDING+1 || ball_x == DISP_W-GAME_BAR_PADDING-1){
+		if((ball_x == GAME_BAR_PADDING+1) || (ball_x == DISP_W-GAME_BAR_PADDING-1)){
 			// x position matches bar x pos
 			if((ball_y <= (float)left_game_bar_height && ball_y > (float)(left_game_bar_height - (int)GAME_BAR_HEIGHT))
 				|| (ball_y <= (float)right_game_bar_height && ball_y > (right_game_bar_height - (int)GAME_BAR_HEIGHT))){
@@ -363,8 +350,6 @@ void reset_game(void){
 
     ball_speed_x = (float) BALL_SPEED;
 	ball_speed_y = (float) BALL_SPEED;
-    last_ball_pos_x = -1;
-	last_ball_pos_y = -1;
 
 	draw_game_bars();
 	
@@ -372,7 +357,7 @@ void reset_game(void){
 
 
 /*-----------------------------------------------------------*/
-void show_scores( void *pvParameters )
+static void show_scores( void *pvParameters )
 {
 	( void ) pvParameters;
 	printText("Score:");
