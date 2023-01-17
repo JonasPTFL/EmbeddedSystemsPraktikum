@@ -13,21 +13,21 @@
 
 //#include <string.h>
 
-void irq_handler() __attribute__((interrupt));
+void irq_handler(void) __attribute__((interrupt));
 
-int left_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2), right_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
-float ball_x = DISP_W/2, ball_y = DISP_H/2;
-float ball_speed_x = BALL_SPEED, ball_speed_y = BALL_SPEED;
-int last_ball_pos_x = -1, last_ball_pos_y = -1;
+static int left_game_bar_height = (int)((DISP_H/2)+(GAME_BAR_HEIGHT/2)), right_game_bar_height = (int)((DISP_H/2)+(GAME_BAR_HEIGHT/2));
+static float ball_x = DISP_W/2, ball_y = DISP_H/2;
+static float ball_speed_x = (float)BALL_SPEED, ball_speed_y = (float)BALL_SPEED;
+static int last_ball_pos_x = -1, last_ball_pos_y = -1;
 static uint_t seed = 0;
-int left_player_score = 0, right_player_score = 0;
+static int left_player_score = 0, right_player_score = 0;
 
 /*-----------------------------------------------------------*/
 
 /* The task functions. */
-void update_ball( void *pvParameters );
-void update_game( void *pvParameters );
-void show_scores( void *pvParameters );
+static void update_ball( void *pvParameters );
+static void update_game( void *pvParameters );
+static void show_scores( void *pvParameters );
 
 /*-----------------------------------------------------------*/
 int main( void )
@@ -67,6 +67,7 @@ unsigned int nearly_random_number(void){
     uint_t bit = (uint_t)((((lfsr >> 0U) ^ (lfsr >> 2U)) ^ (lfsr >> 3U)) ^ (lfsr >> 5U))  & 1U;
 
     lfsr =  (lfsr >> 1U) | (bit << 15U);
+	return lfsr%10;
 }
 
 /* enables all leds with the given state  */
@@ -119,11 +120,6 @@ void draw_game_bars(void){
 	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
 }
 
-
-void toggle_led(uint32_t led){
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL)  ^=  (1U << led);
-}
-
 /* sets up the given led pin  */
 void setup_led(uint32_t gpio_pin){
 	REG(GPIO_BASE + GPIO_IOF_EN) &= ~((uint32_t)1 << gpio_pin);
@@ -142,9 +138,9 @@ void setup_button(uint32_t gpio_pin){
 }
 
 
-void init_irq()
+void init_irq(void)
 {
-    	// PLIC, 52 sources, 7 priorities
+    // PLIC, 52 sources, 7 priorities
 	// all off
 	REG(PLIC_BASE + PLIC_ENABLE) = 0;
 	REG(PLIC_BASE + PLIC_ENABLE + 4) = 0;
@@ -177,7 +173,7 @@ void clear_button_interrupt(int pin){
 	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << pin);
 }
 
-void irq_handler()
+void irq_handler(void)
 {
 	// claim interrupt
 	uint32_t nb = REG(PLIC_BASE + PLIC_CLAIM);
@@ -196,6 +192,8 @@ void irq_handler()
 		right_game_bar_height += GAME_BAR_STEP_LENGTH;
 	}  else if(nb == BUTTON_RIGHT_DOWN){
 		right_game_bar_height -= GAME_BAR_STEP_LENGTH;
+	} else {
+
 	}
 	
 
@@ -217,16 +215,21 @@ boolean is_pressed(uint32_t button){
 }
 
 uint8_t check_bar_in_screen(uint8_t bar_height){
+	uint8_t new_bar_height = bar_height;
 	if(bar_height < GAME_BAR_HEIGHT) {
-		return GAME_BAR_HEIGHT;
+		new_bar_height = GAME_BAR_HEIGHT;
 	} else if (bar_height > DISP_H) {
-		return DISP_H;
+		new_bar_height = DISP_H;
+	} else {
+
 	}
+	return new_bar_height;
 }
 
 /*-----------------------------------------------------------*/
 void update_ball( void *pvParameters )
 {
+	( void ) pvParameters;
 	TickType_t xLastWakeTime;
 	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
 
@@ -238,22 +241,26 @@ void update_ball( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
-		if (is_pressed(BUTTON_LEFT_UP)){
+		boolean update_bars = TRUE;
+
+		if (is_pressed(BUTTON_LEFT_UP) == TRUE){
 			left_game_bar_height -= GAME_BAR_STEP_LENGTH;
-		} else if(is_pressed(BUTTON_LEFT_DOWN)){
+		} else if(is_pressed(BUTTON_LEFT_DOWN) == TRUE){
 			left_game_bar_height += GAME_BAR_STEP_LENGTH;
-		} else if(is_pressed(BUTTON_RIGHT_UP)){
+		} else if(is_pressed(BUTTON_RIGHT_UP) == TRUE){
 			right_game_bar_height -= GAME_BAR_STEP_LENGTH;
-		} else if(is_pressed(BUTTON_RIGHT_DOWN)){
+		} else if(is_pressed(BUTTON_RIGHT_DOWN) == TRUE){
 			right_game_bar_height += GAME_BAR_STEP_LENGTH;
 		} else {
-			continue;
+			update_bars = FALSE;
 		}
-		right_game_bar_height = check_bar_in_screen(right_game_bar_height);
-		left_game_bar_height = check_bar_in_screen(left_game_bar_height);
-		draw_game_bars();
+		if(update_bars == TRUE) {
+			right_game_bar_height = check_bar_in_screen(right_game_bar_height);
+			left_game_bar_height = check_bar_in_screen(left_game_bar_height);
+			draw_game_bars();
+		} else {
 
-		// currently nothing
+		}
 	}
 }
 
@@ -267,6 +274,7 @@ void draw_game_bar(uint8_t x, uint8_t y){
 /*-----------------------------------------------------------*/
 void update_game( void *pvParameters )
 {
+	( void ) pvParameters;
 	TickType_t xLastWakeTime;
 	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
 
@@ -302,6 +310,8 @@ void update_game( void *pvParameters )
 			ball_speed_y = -ball_speed_y;
 		}else if(ball_y <= 1){
 			ball_speed_y = -ball_speed_y;
+		} else {
+
 		}
 
 
@@ -309,28 +319,29 @@ void update_game( void *pvParameters )
 		// check bars
 		if(ball_x == GAME_BAR_PADDING+1 || ball_x == DISP_W-GAME_BAR_PADDING-1){
 			// x position matches bar x pos
-			if((ball_y <= left_game_bar_height && ball_y > left_game_bar_height - GAME_BAR_HEIGHT)
-				|| (ball_y <= right_game_bar_height && ball_y > right_game_bar_height - GAME_BAR_HEIGHT)){
+			if((ball_y <= (float)left_game_bar_height && ball_y > (float)(left_game_bar_height - (int)GAME_BAR_HEIGHT))
+				|| (ball_y <= (float)right_game_bar_height && ball_y > (right_game_bar_height - (int)GAME_BAR_HEIGHT))){
 				
-				boolean hitTop = (ball_y <= left_game_bar_height && ball_y > left_game_bar_height - GAME_BAR_HEIGHT/2)
-				 || (ball_y <= right_game_bar_height && ball_y > right_game_bar_height - GAME_BAR_HEIGHT/2);
+				boolean hitTop = (boolean)(ball_y <= (float)left_game_bar_height && ball_y > (float)(((float)left_game_bar_height) - GAME_BAR_HEIGHT/2))
+				 || (ball_y <= (float)right_game_bar_height && ball_y > (((float)right_game_bar_height) - (float)(((int)GAME_BAR_HEIGHT)/2)));
 
-				if (seed == 0) {
+				if (seed == 0U) {
                     const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
                     seed = (uint_t)*now;
-                }
+                } else {
+
+				}
 
 				//float rand_modifier = nearly_random_number()/5;
-				if (hitTop) // TODO weitermachen
+				if (hitTop == TRUE) // TODO weitermachen
 				{
 					ball_speed_y = -1.3;
 				} else {
 					ball_speed_y = 1.3;
 				}
 				ball_speed_x = -ball_speed_x;
-			}
-
-		}
+			} else {}
+		} else {}
 
 		fb_set_pixel_direct(ball_x, ball_y, 0);
 
@@ -341,17 +352,17 @@ void update_game( void *pvParameters )
 	}
 }
 
-void reset_game(){
+void reset_game(void){
 
 	fb_init();
 	oled_clear();
-	ball_x = DISP_W/2;
-	ball_y = DISP_H/2;
-	left_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
-	right_game_bar_height = (DISP_H/2)+(GAME_BAR_HEIGHT/2);
+	ball_x = ((int)DISP_W)/2;
+	ball_y = ((int)DISP_H)/2;
+	left_game_bar_height = (int)(((int)DISP_H)/2)+(((int)GAME_BAR_HEIGHT)/2);
+	right_game_bar_height = (int)((int)DISP_H/2)+(((int)GAME_BAR_HEIGHT)/2);
 
-    ball_speed_x = BALL_SPEED;
-	ball_speed_y = BALL_SPEED;
+    ball_speed_x = (float) BALL_SPEED;
+	ball_speed_y = (float) BALL_SPEED;
     last_ball_pos_x = -1;
 	last_ball_pos_y = -1;
 
@@ -363,6 +374,7 @@ void reset_game(){
 /*-----------------------------------------------------------*/
 void show_scores( void *pvParameters )
 {
+	( void ) pvParameters;
 	printText("Score:");
 
 	for( ;; ){}
