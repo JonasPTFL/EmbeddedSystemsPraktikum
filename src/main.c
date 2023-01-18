@@ -35,6 +35,8 @@ static float ball_y = (int)DISP_H/2;
 static float ball_speed_x = (float)BALL_SPEED;
 static float ball_speed_y = (float)BALL_SPEED;
 static uint_t seed = 0;
+static int left_player_score = 0;
+static int right_player_score = 0;
 
 
 /*-----------------------------------------------------------*/
@@ -53,6 +55,7 @@ int main( void )
 	/* three tasks with different priorities */
 	BaseType_t t1 = xTaskCreate( update_ball, "Draw game", 1000, NULL, 2, NULL );
 	BaseType_t t2 = xTaskCreate( update_game, "Updates the game", 1000, NULL, 1, NULL );
+	BaseType_t t3 = xTaskCreate( show_scores, "Shows the player scores", 1000, NULL, 10, NULL );
 
 	(void) t1;
 	(void) t2;
@@ -73,7 +76,7 @@ void delay(uint32_t milliseconds){
     }
 }
 
-/* generates a nearly random number from 0 to 3  
+/* generates a nearly random number 0 or 1
 * this method is a modifier version from the method posted on :
 * stackoverflow.com/a/7603688
 * This posted code snippet is a modifier version of an generation algorithm from the wikipedia article:
@@ -85,7 +88,7 @@ unsigned int nearly_random_number(void){
     uint_t bit = (uint_t)((((lfsr >> 0U) ^ (lfsr >> 2U)) ^ (lfsr >> 3U)) ^ (lfsr >> 5U))  & 1U;
 
     lfsr =  (lfsr >> 1U) | (bit << 15U);
-    return (lfsr+seed) % 10U;
+    return (lfsr+seed) % 2U;
 }
 
 void setup(void){
@@ -204,8 +207,8 @@ static uint8_t check_bar_in_screen(uint8_t bar_height){
 	uint8_t new_bar_height = bar_height;
 	if(bar_height < (uint8_t)GAME_BAR_HEIGHT) {
 		new_bar_height = GAME_BAR_HEIGHT;
-	} else if (bar_height > (uint8_t)DISP_H) {
-		new_bar_height = DISP_H;
+	} else if (bar_height >= (uint8_t)DISP_H) {
+		new_bar_height = DISP_H-1;
 	} else {
 
 	}
@@ -262,8 +265,6 @@ static void update_game( void *pvParameters )
 	( void ) pvParameters;
 	TickType_t xLastWakeTime;
 	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
-	static int left_player_score = 0;
-	static int right_player_score = 0;
 
 	xLastWakeTime = xTaskGetTickCount();
 
@@ -274,6 +275,8 @@ static void update_game( void *pvParameters )
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
 		if((ball_x <= (float)0) || ( ball_x >= (float)DISP_W)){
+            fb_init();
+            oled_clear();
 			// game over
 			printText("Game over");
 			if (ball_x <= 0) {
@@ -281,15 +284,6 @@ static void update_game( void *pvParameters )
 			} else {
 				left_player_score++;
 			}
-			
-			
-			//printText(""+left_player_score); // TODO
-			printText(" - ");
-			//printText(""+right_player_score);
-			delay(1500);
-			//xTaskCreate( show_scores, "Shows the player scores", 1000, NULL, 3, NULL );
-			
-			reset_game();
 		}
 
 		// check edges
@@ -319,12 +313,19 @@ static void update_game( void *pvParameters )
 
 				}
 
-				//float rand_modifier = nearly_random_number()/5;
-				if (hitTop == TRUE) // TODO weitermachen
+				float rand_modifier = nearly_random_number();
+                if (rand_modifier == 1)
+                {
+                    rand_modifier = 1.25;
+                } else {
+                    rand_modifier = 0.75;
+                }
+                
+				if (hitTop == TRUE)
 				{
-					ball_speed_y = -1.3;
+					ball_speed_y = -rand_modifier;
 				} else {
-					ball_speed_y = 1.3;
+					ball_speed_y = rand_modifier;
 				}
 				ball_speed_x = -ball_speed_x;
 			} else {}
@@ -360,7 +361,15 @@ void reset_game(void){
 static void show_scores( void *pvParameters )
 {
 	( void ) pvParameters;
-	printText("Score:");
+    
+			
+    newline();
+    
+    printChar(left_player_score+'0');
+    printText(" - ");
+    printChar(right_player_score+'0');
+			
+	reset_game();
 
 	for( ;; ){}
 }

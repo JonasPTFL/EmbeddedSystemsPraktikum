@@ -49,7 +49,7 @@ typedef unsigned long long uint64_t;
 
 #define GAME_BAR_HEIGHT 17
 #define GAME_BAR_PADDING 3
-#define GAME_BAR_STEP_LENGTH 3
+#define GAME_BAR_STEP_LENGTH 1
 #define BALL_SPEED 1
 #define GAME_UPDATE_INTERVAL_MILLIS 23
 
