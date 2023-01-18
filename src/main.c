@@ -15,7 +15,6 @@
 
 void irq_handler(void) __attribute__((interrupt));
 static void reset_game(void);
-static void activate_button_for_interrupt(int pin);
 static void draw_game_bar(uint8_t x, uint8_t y);
 static void delay(uint32_t milliseconds);
 static unsigned int nearly_random_number(void);
@@ -23,15 +22,15 @@ static void setup(void);
 static void draw_game_bars(void);
 static uint8_t check_bar_in_screen(uint8_t bar_height);
 static boolean is_pressed(uint32_t button);
-static void clear_button_interrupt(int pin);
-static void activate_button_for_interrupt(int pin);
+static void clear_button_interrupt(uint8_t pin);
+static void activate_button_for_interrupt(uint8_t pin);
 static void init_irq(void);
 static void setup_button(uint32_t gpio_pin);
 
 static int left_game_bar_height = (int)(((int)DISP_H/2)+((int)GAME_BAR_HEIGHT/2));
 static int right_game_bar_height = (int)(((int)DISP_H/2)+((int)GAME_BAR_HEIGHT/2));
-static float ball_x = (int)DISP_W/2;
-static float ball_y = (int)DISP_H/2;
+static float ball_x = (float)DISP_W/2;
+static float ball_y = (float)DISP_H/2;
 static float ball_speed_x = (float)BALL_SPEED;
 static float ball_speed_y = (float)BALL_SPEED;
 static uint_t seed = 0;
@@ -53,12 +52,13 @@ int main( void )
 	setup();
 
 	/* three tasks with different priorities */
-	BaseType_t t1 = xTaskCreate( update_ball, "Draw game", 1000, NULL, 2, NULL );
-	BaseType_t t2 = xTaskCreate( update_game, "Updates the game", 1000, NULL, 1, NULL );
-	BaseType_t t3 = xTaskCreate( show_scores, "Shows the player scores", 1000, NULL, 10, NULL );
+	BaseType_t t1 = xTaskCreate( update_ball, "Draw game", 1000U, NULL, 2, NULL );
+	BaseType_t t2 = xTaskCreate( update_game, "Updates the game", 1000U, NULL, 1, NULL );
+	BaseType_t t3 = xTaskCreate( show_scores, "Shows the player scores", 1000U, NULL, 10, NULL );
 
 	(void) t1;
 	(void) t2;
+	(void) t3;
 
 	/* start scheduler */
 	vTaskStartScheduler();
@@ -110,8 +110,8 @@ void setup(void){
 
 void draw_game_bars(void){
 	for(uint8_t i=0; i < DISP_H; i++){
-		fb_set_pixel_direct(GAME_BAR_PADDING, i, 0);
-		fb_set_pixel_direct(DISP_W-GAME_BAR_PADDING, i, 0);
+		fb_set_pixel_direct(GAME_BAR_PADDING, i, 0U);
+		fb_set_pixel_direct(DISP_W-GAME_BAR_PADDING, i, 0U);
 	}
 	draw_game_bar(GAME_BAR_PADDING, left_game_bar_height);
 	draw_game_bar(DISP_W-GAME_BAR_PADDING, right_game_bar_height);
@@ -129,12 +129,13 @@ void setup_button(uint32_t gpio_pin){
 
 static void init_irq(void)
 {
+	(void) init_irq;
     // PLIC, 52 sources, 7 priorities
 	// all off
-	REG(PLIC_BASE + PLIC_ENABLE) = 0;
-	REG(PLIC_BASE + PLIC_ENABLE + 4) = 0;
+	REG(PLIC_BASE + PLIC_ENABLE) = 0U;
+	REG(PLIC_BASE + PLIC_ENABLE + 4U) = 0U;
 	// threshold 0
-	REG(PLIC_BASE + PLIC_THRESH) = 0;
+	REG(PLIC_BASE + PLIC_THRESH) = 0U;
 
 	activate_button_for_interrupt(BUTTON_LEFT_UP);
 	activate_button_for_interrupt(BUTTON_LEFT_DOWN);
@@ -142,36 +143,34 @@ static void init_irq(void)
 	activate_button_for_interrupt(BUTTON_RIGHT_DOWN);
 }
 
-void activate_button_for_interrupt(int pin){
+void activate_button_for_interrupt(uint8_t pin){
 	// enable irq for button and set priority for button to 1
     // interrupts for gpio start at 8
-    REG(PLIC_BASE + PLIC_ENABLE) |= (1 << (8+pin));
-    REG(PLIC_BASE + 4*(8+pin)) = 1;
+    REG(PLIC_BASE + PLIC_ENABLE) |= (1U << (8U+pin));
+    REG(PLIC_BASE + 4U*(8U+pin)) = 1U;
 
 	// irq at rising
-    REG(GPIO_BASE + GPIO_RISE_IE) |= (1 << pin);
+    REG(GPIO_BASE + GPIO_RISE_IE) |= (1U << pin);
 
 	// clear gpio pending interrupt
-	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << pin);
+	REG(GPIO_BASE + GPIO_RISE_IP) |= (1U << pin);
 }
 
-
-static void clear_button_interrupt(int pin){
-
-	// clear gpio pending interrupt
-	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << pin);
+void clear_button_interrupt(uint8_t pin){
+	(void) clear_button_interrupt;
+	// clear gpio penactivate_button_for_interruptding interrupt
+	REG(GPIO_BASE + GPIO_RISE_IP) |= (1U << pin);
 }
 
 void irq_handler(void)
 {
+
+	(void) irq_handler; 
 	// claim interrupt
 	uint32_t nb = REG(PLIC_BASE + PLIC_CLAIM);
 
-	// toggle led
-	REG(GPIO_BASE + GPIO_OUTPUT_VAL) ^= (1 << RED_LED);
-
 	// clear gpio pending interrupt
-	REG(GPIO_BASE + GPIO_RISE_IP) |= (1 << (nb-8));
+	REG(GPIO_BASE + GPIO_RISE_IP) |= (1U << (nb-8U));
 
 	if (nb == BUTTON_LEFT_UP){
 		left_game_bar_height += GAME_BAR_STEP_LENGTH;
@@ -309,13 +308,13 @@ static void update_game( void *pvParameters )
 
 
 		// check bars
-		if((ball_x == GAME_BAR_PADDING+1) || (ball_x == DISP_W-GAME_BAR_PADDING-1)){
+		if((ball_x == (float)(GAME_BAR_PADDING+1.0)) || (ball_x == (float)(DISP_W-GAME_BAR_PADDING-1.0))){
 			// x position matches bar x pos
-			if((ball_y <= (float)left_game_bar_height && ball_y > (float)(left_game_bar_height - (int)GAME_BAR_HEIGHT))
+			if(((ball_y <= (float)left_game_bar_height) && (ball_y > (float)((float)left_game_bar_height - (float)GAME_BAR_HEIGHT)))
 				|| (ball_y <= (float)right_game_bar_height && ball_y > (right_game_bar_height - (int)GAME_BAR_HEIGHT))){
 				
-				boolean hitTop = (boolean)(ball_y <= (float)left_game_bar_height && ball_y > (float)(((float)left_game_bar_height) - GAME_BAR_HEIGHT/2))
-				 || (ball_y <= (float)right_game_bar_height && ball_y > (((float)right_game_bar_height) - (float)(((int)GAME_BAR_HEIGHT)/2)));
+				boolean hitTop = (boolean)(ball_y <= (float)left_game_bar_height && ball_y > (float)(((float)left_game_bar_height) - GAME_BAR_HEIGHT/2.0F))
+				 || ((ball_y <= (float)right_game_bar_height) && (ball_y > (((float)right_game_bar_height) - (float)(((float)GAME_BAR_HEIGHT)/2.0F))));
 
 				if (seed == 0U) {
                     const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
@@ -325,11 +324,11 @@ static void update_game( void *pvParameters )
 				}
 
 				float rand_modifier = nearly_random_number();
-                if (rand_modifier == 1)
+                if (rand_modifier == 1.0F)
                 {
-                    rand_modifier = 1.25;
+                    rand_modifier = 1.25F;
                 } else {
-                    rand_modifier = 0.75;
+                    rand_modifier = 0.75F;
                 }
                 
 				if (hitTop == TRUE)
@@ -342,12 +341,12 @@ static void update_game( void *pvParameters )
 			} else {}
 		} else {}
 
-		fb_set_pixel_direct(ball_x, ball_y, 0);
+		fb_set_pixel_direct(ball_x, ball_y, 0U);
 
 		ball_x += ball_speed_x;
 		ball_y += ball_speed_y;
 
-		fb_set_pixel_direct(ball_x, ball_y, 1);
+		fb_set_pixel_direct(ball_x, ball_y, 1U);
 	}
 }
 
@@ -355,8 +354,8 @@ void reset_game(void){
 
 	fb_init();
 	oled_clear();
-	ball_x = ((int)DISP_W)/2;
-	ball_y = ((int)DISP_H)/2;
+	ball_x = (float)((int)DISP_W)/2;
+	ball_y = (float)((int)DISP_H)/2;
 	left_game_bar_height = (int)(((int)DISP_H)/2)+(((int)GAME_BAR_HEIGHT)/2);
 	right_game_bar_height = (int)((int)DISP_H/2)+(((int)GAME_BAR_HEIGHT)/2);
 

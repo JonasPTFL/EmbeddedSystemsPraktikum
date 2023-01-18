@@ -38,14 +38,14 @@ typedef unsigned long long uint64_t;
 #define MILLISECONDS_PER_SECOND 1000
 
 /* pins */
-#define BUTTON_LEFT_UP 18
-#define BUTTON_LEFT_DOWN 19
-#define BUTTON_RIGHT_DOWN 20
-#define BUTTON_RIGHT_UP 21
-#define GREEN_LED 22
+#define BUTTON_LEFT_UP 18U
+#define BUTTON_LEFT_DOWN 19U
+#define BUTTON_RIGHT_DOWN 20U
+#define BUTTON_RIGHT_UP 21U
+#define GREEN_LED 22U
 #define BLUE_LED 23
-#define YELLOW_LED 0
-#define RED_LED 1
+#define YELLOW_LED 0U
+#define RED_LED 1U
 
 #define GAME_BAR_HEIGHT 17
 #define GAME_BAR_PADDING 3
