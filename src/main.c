@@ -284,6 +284,17 @@ static void update_game( void *pvParameters )
 			} else {
 				left_player_score++;
 			}
+
+            			
+            newline();
+            
+            printChar(left_player_score+'0');
+            printText(" - ");
+            printChar(right_player_score+'0');
+
+            delay(2000);
+            
+            reset_game();
 		}
 
 		// check edges
