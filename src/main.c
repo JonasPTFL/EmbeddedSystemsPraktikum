@@ -26,6 +26,7 @@ static void clear_button_interrupt(uint8_t pin);
 static void activate_button_for_interrupt(uint8_t pin);
 static void init_irq(void);
 static void setup_button(uint32_t gpio_pin);
+static void end_round(void);
 
 static int left_game_bar_height = (int)(((int)DISP_H/2)+((int)GAME_BAR_HEIGHT/2));
 static int right_game_bar_height = (int)(((int)DISP_H/2)+((int)GAME_BAR_HEIGHT/2));
@@ -40,9 +41,8 @@ static int right_player_score = 0;
 
 /*-----------------------------------------------------------*/
 
-static TaskHandle_t xGameEndTask;
-static TaskHandle_t xGameUpdateTask;
 static TaskHandle_t xBallUpdateTask;
+static TaskHandle_t xGameEndTask;
 
 /* The task functions. */
 static void update_ball( void *pvParameters );
@@ -57,11 +57,12 @@ int main( void )
 
 	/* three tasks with different priorities */
 	BaseType_t t1 = xTaskCreate( update_ball, "Update Ball", 1000U, NULL, 2, &xBallUpdateTask);
-	BaseType_t t2 = xTaskCreate( update_game, "Updates the game", 1000U, NULL, 0, &xGameUpdateTask );
-	BaseType_t t3 = xTaskCreate( show_scores, "Shows the player scores", 1000U, NULL, 1, &xGameEndTask );
+	//BaseType_t t2 = xTaskCreate( update_game, "Updates the game", 1000U, NULL, 3, NULL );
+	BaseType_t t3 = xTaskCreate( show_scores, "Shows the player scores", 1000U, NULL, 4, &xGameEndTask );
+	
 
 	(void) t1;
-	(void) t2;
+	//(void) t2;
 	(void) t3;
 
 	/* start scheduler */
@@ -134,7 +135,7 @@ void setup_button(uint32_t gpio_pin){
 }
 
 
-static void init_irq(void)
+void init_irq(void)
 {
 	(void) init_irq;
     // PLIC, 52 sources, 7 priorities
@@ -199,7 +200,7 @@ void irq_handler(void)
 	REG(PLIC_BASE + PLIC_CLAIM) = nb;
 }
 
-static uint8_t check_bar_in_screen(uint8_t bar_height){
+uint8_t check_bar_in_screen(uint8_t bar_height){
 	uint8_t new_bar_height = bar_height;
 	if(bar_height < (uint8_t)GAME_BAR_HEIGHT) {
 		new_bar_height = GAME_BAR_HEIGHT;
@@ -212,7 +213,7 @@ static uint8_t check_bar_in_screen(uint8_t bar_height){
 }
 
 /*-----------------------------------------------------------*/
-static void update_ball( void *pvParameters )
+void update_ball( void *pvParameters )
 {
 	( void ) pvParameters;
 	TickType_t xLastWakeTime;
@@ -225,6 +226,12 @@ static void update_ball( void *pvParameters )
 	{
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
+
+		// check game ended
+		if((ball_x <= (float)0) || ( ball_x >= (float)DISP_W)){
+			vTaskResume(xGameEndTask);
+			vTaskSuspend(NULL);
+		}
 
 
 		// check edges
@@ -288,7 +295,7 @@ void draw_game_bar(uint8_t x, uint8_t y){
 }
 
 /*-----------------------------------------------------------*/
-static void update_game( void *pvParameters )
+void update_game( void *pvParameters )
 {
 	( void ) pvParameters;
 	TickType_t xLastWakeTime;
@@ -302,26 +309,19 @@ static void update_game( void *pvParameters )
 		/* periodic */
 		vTaskDelayUntil( &xLastWakeTime, xDelay );
 
-		// check game ended
-		if((ball_x <= (float)0) || ( ball_x >= (float)DISP_W)){
-			vTaskResume( xGameEndTask );
-			vTaskSuspend(xGameUpdateTask);
-			vTaskSuspend(xBallUpdateTask);
-		}
 
 	}
 }
 
 
-static void show_scores( void *pvParameters )
+void show_scores( void *pvParameters )
 {
 	( void ) pvParameters;
 
 
 	for( ;; )
 	{
-		vTaskSuspend(xGameEndTask);
-
+		vTaskSuspend(NULL);
 		fb_init();
 		oled_clear();
 		// game over
@@ -344,11 +344,13 @@ static void show_scores( void *pvParameters )
 			printChar(((int)(right_player_score/10))+'0');
 			printChar(((int)(right_player_score%10))+'0');
 		}
-		delay(2000);
+		const TickType_t xDelay = pdMS_TO_TICKS( 1000 );
+		vTaskDelay(xDelay);
 
 		// reset game
 		fb_init();
 		oled_clear();
+		draw_game_bars();
 		ball_x = (float)((int)DISP_W)/2;
 		ball_y = (float)((int)DISP_H)/2;
 		left_game_bar_height = (int)(((int)DISP_H)/2)+(((int)GAME_BAR_HEIGHT)/2);
@@ -356,11 +358,9 @@ static void show_scores( void *pvParameters )
 
 		ball_speed_x = (float) BALL_SPEED;
 		ball_speed_y = (float) BALL_SPEED;
+		
 
-		draw_game_bars();
-
-		vTaskResume( xGameUpdateTask );
-		vTaskResume( xBallUpdateTask );
+		vTaskResume(xBallUpdateTask);
 
 	}
 }
