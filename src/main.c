@@ -35,8 +35,6 @@ static float ball_y = (float)DISP_H/2;
 static float ball_speed_x = (float)BALL_SPEED;
 static float ball_speed_y = (float)BALL_SPEED;
 static uint_t seed = 0;
-static int left_player_score = 0;
-static int right_player_score = 0;
 
 
 /*-----------------------------------------------------------*/
@@ -46,7 +44,6 @@ static TaskHandle_t xGameEndTask;
 
 /* The task functions. */
 static void update_ball( void *pvParameters );
-static void update_game( void *pvParameters );
 static void show_scores( void *pvParameters );
 
 /*-----------------------------------------------------------*/
@@ -70,15 +67,6 @@ int main( void )
 
 	for( ;; ){}
 	return 0;
-}
-
-/* delay the program for a specific amount of milliseconds  */
-void delay(uint32_t milliseconds){
-    const volatile uint64_t *now = (volatile uint64_t*)(CLINT_CTRL_ADDR + (uint64_t)CLINT_MTIME);
-    volatile uint64_t then = *now + (uint64_t)milliseconds*((uint64_t)RTC_FREQ / (uint64_t)MILLISECONDS_PER_SECOND);
-    while ((*now) < then){
-        
-    }
 }
 
 /* generates a nearly random number 0 or 1
@@ -294,30 +282,13 @@ void draw_game_bar(uint8_t x, uint8_t y){
 	}
 }
 
-/*-----------------------------------------------------------*/
-void update_game( void *pvParameters )
-{
-	( void ) pvParameters;
-	TickType_t xLastWakeTime;
-	const TickType_t xDelay = pdMS_TO_TICKS( GAME_UPDATE_INTERVAL_MILLIS );
-
-	xLastWakeTime = xTaskGetTickCount();
-
-
-	for( ;; )
-	{
-		/* periodic */
-		vTaskDelayUntil( &xLastWakeTime, xDelay );
-
-
-	}
-}
-
 
 void show_scores( void *pvParameters )
 {
 	( void ) pvParameters;
 
+	static int left_player_score = 0;
+	static int right_player_score = 0;
 
 	for( ;; )
 	{
@@ -333,16 +304,22 @@ void show_scores( void *pvParameters )
 		}
 
 		newline();
-		if(left_player_score < 10) printChar(left_player_score+'0');
-		else if(left_player_score < 100) {
+		if(left_player_score < 10) {
+			printChar(left_player_score+'0');
+		} else if(left_player_score < 100) {
 			printChar(((int)(left_player_score/10))+'0');
 			printChar(((int)(left_player_score%10))+'0');
+		} else {
+
 		}
 		printText(" - ");
-		if(right_player_score < 10) printChar(right_player_score+'0');
-		else if(right_player_score < 100) {
+		if(right_player_score < 10) {
+			printChar(right_player_score+'0');
+		} else if(right_player_score < 100) {
 			printChar(((int)(right_player_score/10))+'0');
 			printChar(((int)(right_player_score%10))+'0');
+		} else {
+
 		}
 		const TickType_t xDelay = pdMS_TO_TICKS( 1000 );
 		vTaskDelay(xDelay);
