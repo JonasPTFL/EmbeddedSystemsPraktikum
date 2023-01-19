@@ -11,7 +11,6 @@
 #include "framebuffer.h"
 #include "font.h"
 
-//#include <string.h>
 
 void irq_handler(void);
 static void reset_game(void);
@@ -22,7 +21,6 @@ static void setup(void);
 static void draw_game_bars(void);
 static uint8_t check_bar_in_screen(uint8_t bar_height);
 static boolean is_pressed(uint32_t button);
-static void clear_button_interrupt(uint8_t pin);
 static void activate_button_for_interrupt(uint8_t pin);
 static void init_irq(void);
 static void setup_button(uint32_t gpio_pin);
@@ -54,12 +52,10 @@ int main( void )
 
 	/* three tasks with different priorities */
 	BaseType_t t1 = xTaskCreate( update_ball, "Update Ball", 1000U, NULL, 2, &xBallUpdateTask);
-	//BaseType_t t2 = xTaskCreate( update_game, "Updates the game", 1000U, NULL, 3, NULL );
 	BaseType_t t3 = xTaskCreate( show_scores, "Shows the player scores", 1000U, NULL, 4, &xGameEndTask );
 	
 
 	(void) t1;
-	//(void) t2;
 	(void) t3;
 
 	/* start scheduler */
@@ -84,6 +80,7 @@ unsigned int nearly_random_number(void){
     return (lfsr+seed) % 2U;
 }
 
+/* sets up the program */
 void setup(void){
 
 	init_irq();
@@ -101,6 +98,7 @@ void setup(void){
 	
 }
 
+/* draws the game bars on the oled display */
 void draw_game_bars(void){
 	right_game_bar_height = check_bar_in_screen(right_game_bar_height);
 	left_game_bar_height = check_bar_in_screen(left_game_bar_height);
@@ -122,7 +120,7 @@ void setup_button(uint32_t gpio_pin){
 	REG(GPIO_BASE + GPIO_OUTPUT_VAL) &= ~(1U << gpio_pin);
 }
 
-
+/* initializes the interrupt */
 void init_irq(void)
 {
 	(void) init_irq;
@@ -139,6 +137,7 @@ void init_irq(void)
 	activate_button_for_interrupt(BUTTON_RIGHT_DOWN);
 }
 
+/* activates a button for the interuppt */
 void activate_button_for_interrupt(uint8_t pin){
 	// enable irq for button and set priority for button to 1
     // interrupts for gpio start at 8
@@ -152,12 +151,7 @@ void activate_button_for_interrupt(uint8_t pin){
 	REG(GPIO_BASE + GPIO_RISE_IP) |= (1U << pin);
 }
 
-void clear_button_interrupt(uint8_t pin){
-	(void) clear_button_interrupt;
-	// clear gpio penactivate_button_for_interruptding interrupt
-	REG(GPIO_BASE + GPIO_RISE_IP) |= (1U << pin);
-}
-
+/* handles interrupt */
 void irq_handler(void)
 {
 
@@ -188,6 +182,7 @@ void irq_handler(void)
 	REG(PLIC_BASE + PLIC_CLAIM) = nb;
 }
 
+/* checks thwether bars are in screen and returns correct position */
 uint8_t check_bar_in_screen(uint8_t bar_height){
 	uint8_t new_bar_height = bar_height;
 	if(bar_height < (uint8_t)GAME_BAR_HEIGHT) {
@@ -267,6 +262,7 @@ void update_ball( void *pvParameters )
 			} else {}
 		} else {}
 
+		// remove old, draw new pixel
 		fb_set_pixel_direct(ball_x, ball_y, 0U);
 
 		ball_x += ball_speed_x;
@@ -276,13 +272,14 @@ void update_ball( void *pvParameters )
 	}
 }
 
+/* draws a single game bar */
 void draw_game_bar(uint8_t x, uint8_t y){
 	for(uint8_t i=0; i < (uint8_t)GAME_BAR_HEIGHT; i++){
 		fb_set_pixel_direct(x, y-i, 1);
 	}
 }
 
-
+/*shows game scores  */
 void show_scores( void *pvParameters )
 {
 	( void ) pvParameters;
